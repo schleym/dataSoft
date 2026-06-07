@@ -1,0 +1,119 @@
+{% extends 'menu.html' %}
+{% block content %}
+<section class="d-flex align-items-center justify-content-center py-5" style="min-height: 80vh;">
+    <div class="login-card">
+        <div class="login-header text-center">
+            <h2 class="tituloPrincipal" style="font-size: 3rem;">Registro</h2>
+            {% if user.is_authenticated and user.is_staff %}
+            <p class="text-muted">Crear un nuevo usuario como Administrador</p>
+            {% else %}
+            <p class="text-muted">Crea tu cuenta de invocador en DataSoft</p>
+            {% endif %}
+        </div>
+        
+        <form method="post" class="mt-4">
+            {% csrf_token %}
+            
+            {% if form.errors %}
+            <div class="alert alert-danger bg-danger bg-opacity-10 border-danger text-danger">
+                Hubo un problema al crear la cuenta. Por favor verifica los datos e intenta de nuevo.
+            </div>
+            {% endif %}
+
+            {% for field in form %}
+            <div class="mb-3">
+                <label for="{{ field.id_for_label }}" class="form-label text-gold">{{ field.label }}</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-dark border-secondary text-gold">
+                        {% if 'usuario' in field.label.lower or 'username' in field.label.lower %}
+                            <i class="bi bi-person"></i>
+                        {% else %}
+                            <i class="bi bi-lock"></i>
+                        {% endif %}
+                    </span>
+                    <input type="{{ field.field.widget.input_type|default:'text' }}" 
+                           name="{{ field.html_name }}" 
+                           class="form-control bg-dark text-white border-secondary {% if field.errors %}is-invalid{% endif %}" 
+                           id="{{ field.id_for_label }}" 
+                           required>
+                </div>
+                {% if field.help_text %}
+                <div class="form-text text-muted" style="font-size: 0.75rem;">
+                    {{ field.help_text|safe }}
+                </div>
+                {% endif %}
+                {% if field.errors %}
+                <div class="invalid-feedback d-block text-danger" style="font-size: 0.8rem;">
+                    {% for error in field.errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+
+            <!-- Si el usuario actual es admin, mostramos el checkbox para hacerlo admin también -->
+            {% if user.is_authenticated and user.is_staff %}
+            <div class="form-check form-switch mb-4 p-3 rounded bg-dark border border-secondary">
+                <input class="form-check-input ms-0 me-2" type="checkbox" role="switch" id="is_staff" name="is_staff">
+                <label class="form-check-label text-gold font-weight-bold" for="is_staff">
+                    <i class="bi bi-shield-lock-fill me-1"></i> Asignar rol de Administrador (Staff)
+                </label>
+                <div class="form-text text-muted small mt-1">
+                    Si se activa, este nuevo usuario tendrá acceso total al panel de administración de Django y de MongoDB.
+                </div>
+            </div>
+            {% endif %}
+
+            <button type="submit" class="btn-explorar w-100 py-3 mt-2">
+                <span>Registrar</span>
+                <i class="bi bi-person-plus ms-2"></i>
+            </button>
+        </form>
+        
+        <div class="mt-4 text-center">
+            {% if user.is_authenticated and user.is_staff %}
+            <p class="text-muted small">El nuevo usuario será guardado directamente en la base de datos.</p>
+            {% else %}
+            <p class="text-muted small">¿Ya tienes cuenta? <a href="{% url 'login' %}" class="text-gold text-decoration-none hover-underline">Inicia Sesión aquí</a></p>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+<style>
+    .login-card {
+        background: rgba(24, 24, 27, 0.8);
+        backdrop-filter: blur(25px);
+        border: 1px solid rgba(200, 170, 110, 0.3);
+        padding: 50px;
+        border-radius: 25px;
+        width: 100%;
+        max-width: 480px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
+    }
+
+    .text-gold {
+        color: #c8aa6e;
+        font-weight: 600;
+    }
+
+    .input-group-text {
+        border-right: none;
+    }
+
+    .form-control:focus {
+        border-color: #c8aa6e;
+        box-shadow: 0 0 10px rgba(200, 170, 110, 0.2);
+    }
+    
+    .form-check-input:checked {
+        background-color: #c8aa6e;
+        border-color: #c8aa6e;
+    }
+    
+    .hover-underline:hover {
+        text-decoration: underline !important;
+    }
+</style>
+{% endblock %}

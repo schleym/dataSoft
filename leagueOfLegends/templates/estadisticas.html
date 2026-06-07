@@ -1,0 +1,182 @@
+{% extends 'menu.html' %}
+{% block content %}
+<section class="seccion-premium">
+    <div class="text-center mb-5">
+        <h1 class="tituloPrincipal">Estadísticas Globales</h1>
+        <p class="parrafoBanner">Análisis detallado de la base de datos de DataSoft y el meta actual.</p>
+    </div>
+
+    <!-- Resumen Superior -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-4">
+            <div class="stat-card">
+                <div class="stat-icon"><i class="bi bi-people-fill"></i></div>
+                <div class="stat-info">
+                    <span class="value">{{ total_champs }}</span>
+                    <span class="label">Campeones en DB</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card">
+                <div class="stat-icon"><i class="bi bi-graph-up-arrow"></i></div>
+                <div class="stat-info">
+                    <span class="value">{{ avg_winrate }}%</span>
+                    <span class="label">Winrate Promedio</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card">
+                <div class="stat-icon"><i class="bi bi-database-fill-check"></i></div>
+                <div class="stat-info">
+                    <span class="value">v{{ request.GET.patch|default:"14.10" }}</span>
+                    <span class="label">Versión de Datos</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-6">
+            <div class="glass-card p-4 h-100">
+                <h3 class="mb-3"><i class="bi bi-compass-fill me-2 text-gold"></i>Rendimiento por Carril</h3>
+                <p class="text-secondary small mb-4">Winrate promedio calculado dinámicamente para cada carril de la
+                    Grieta del Invocador.</p>
+
+                <!-- Destacado del Mejor Carril -->
+                <div class="p-3 rounded-4 mb-4 text-center"
+                    style="background: linear-gradient(135deg, rgba(200, 170, 110, 0.15) 0%, transparent 100%); border: 1px solid rgba(200, 170, 110, 0.2);">
+                    <span class="text-secondary uppercase small letter-spacing-1 d-block mb-1">CARRIL CON MEJOR
+                        DESEMPEÑO</span>
+                    <h4 class="text-gold fw-bold m-0 fs-3">{{ mejor_rol.carril }}</h4>
+                    <span class="text-success fw-bold fs-5">{{ mejor_rol.winrate }}% Win Rate</span>
+                </div>
+
+                <div class="damage-dist-container">
+                    {% for item in promedios_carril %}
+                    <div class="dist-item mb-3">
+                        <div class="d-flex justify-content-between mb-1.5 align-items-center">
+                            <span class="fw-semibold text-white"><i class="bi bi-compass me-1 text-secondary"></i>{{ item.carril }}</span>
+                            <span class="fw-bold {% if item.winrate >= 50 %}text-success{% else %}text-danger{% endif %}">{{ item.winrate }}% <small class="text-secondary">({{ item.count }} Champs)</small></span>
+                        </div>
+                        <div class="progress" style="height: 10px; background: rgba(0,0,0,0.3);">
+                            <div class="progress-bar {% if item.winrate >= 50 %}bg-success{% else %}bg-danger{% endif %}"
+                                style="width: {{ item.winrate }}%"></div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Top 5 Winrate Table -->
+        <div class="col-lg-6">
+            <div class="glass-card p-4 h-100">
+                <h3 class="mb-4"><i class="bi bi-trophy-fill me-2"></i>Top Winrates</h3>
+                <div class="table-responsive">
+                    <table class="table table-dark table-hover border-0">
+                        <thead>
+                            <tr class="text-muted" style="font-size: 0.8rem;">
+                                <th>CAMPEÓN</th>
+                                <th>TIER</th>
+                                <th class="text-end">WINRATE</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for p in personajes %}
+                            <tr>
+                                <td class="align-middle">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <img src="{{ p.icon }}" width="35"
+                                            class="rounded-circle border border-secondary" alt="">
+                                        <span class="fw-bold">{{ p.nombre }}</span>
+                                    </div>
+                                </td>
+                                <td class="align-middle"><span class="badge bg-tier-{{ p.tier|lower }} px-3 py-1.5">{{ p.tier }}</span></td>
+                                <td class="text-end align-middle fw-bold text-success">{{ p.estadisticas.winrate }}%</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+    .stat-card {
+        background: rgba(24, 24, 27, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 20px;
+        padding: 30px;
+        display: flex;
+        align-items: center;
+        gap: 25px;
+        transition: all 0.3s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        border-color: #c8aa6e;
+    }
+
+    .stat-icon {
+        width: 60px;
+        height: 60px;
+        background: rgba(200, 170, 110, 0.1);
+        border-radius: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.8rem;
+        color: #c8aa6e;
+    }
+
+    .stat-info {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .stat-info .value {
+        font-family: 'Cinzel', serif;
+        font-size: 2rem;
+        font-weight: 800;
+        line-height: 1;
+        margin-bottom: 5px;
+    }
+
+    .stat-info .label {
+        font-size: 0.85rem;
+        color: #a1a1aa;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .bg-gold {
+        background-color: #c8aa6e;
+    }
+
+    .text-gold {
+        color: #c8aa6e;
+    }
+
+    .progress {
+        background-color: rgba(0, 0, 0, 0.3);
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    .table-dark {
+        --bs-table-bg: transparent;
+    }
+
+    /* Estilos dinámicos para los badges de Tiers */
+    .bg-tier-s { background-color: #ff8c00 !important; color: #fff !important; font-weight: 800; }
+    .bg-tier-a { background-color: #be3eff !important; color: #fff !important; font-weight: 800; }
+    .bg-tier-b { background-color: #3e8bff !important; color: #fff !important; font-weight: 800; }
+    .bg-tier-c { background-color: #3effbf !important; color: #000 !important; font-weight: 800; }
+    .bg-tier-d { background-color: #8c8c8c !important; color: #fff !important; font-weight: 800; }
+</style>
+{% endblock %}

@@ -1,0 +1,61 @@
+{% extends 'menu.html' %}
+{% load static %}
+
+{% block content %}
+
+<section class="seccion-meta">
+    <div class="container-meta">
+        <h2 class="titulo-seccion">
+            Campeones del Meta <span class="parche-actual">14.10</span>
+        </h2>
+
+
+        <div class="grid-campeones">
+            {% for p in personajes %}
+            <a href="{% url 'campeon_detalle' p.id %}" class="text-decoration-none">
+                <div class="carta-campeon">
+
+                    <img src="{{ p.splash }}" alt="{{ p.nombre }}" class="bg-campeon">
+
+                    <div class="info-campeon">
+                        <div class="header-carta">
+
+                            <span class="tier-badge tier-{{ p.tier|lower }}">
+                                {{ p.tier }}
+                            </span>
+
+                            {% if p.roles %}
+                            {% if p.roles.0 %}
+                            <span class="rol">{{ p.roles.0 }}</span>
+                            {% endif %}
+                            {% endif %}
+
+                        </div>
+
+                        <div class="datos-carta">
+                            <h3>{{ p.nombre }}</h3>
+
+                            <p>
+                                {% if p.winrate %}
+                                {{ p.winrate }}% Winrate •
+                                {% endif %}
+
+                                {% if p.roles and p.roles.0 %}
+                                {{ p.roles.0 }}
+                                {% else %}
+                                Sin rol
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+
+                </div>
+            </a>
+            {% empty %}
+            <p>No hay campeones en la base de datos</p>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+{% endblock %}

@@ -1,0 +1,208 @@
+{% extends 'menu.html' %}
+{% load static %}
+{% block content %}
+<div class="container py-5 mt-4">
+    <!-- Back Button -->
+    <a href="javascript:history.back()" class="btn btn-outline-secondary mb-4 text-gold border-secondary"
+        style="font-size: 0.85rem; letter-spacing: 1px; font-weight: 700;">
+        <i class="bi bi-arrow-left me-2"></i> VOLVER
+    </a>
+
+    <!-- Summoner Header Card -->
+    <div class="glass-card-premium p-4 mb-4 shadow-lg border border-opacity-10 border-white">
+        <div class="row align-items-center">
+            <div class="col-md-8 d-flex align-items-center flex-column flex-md-row text-center text-md-start">
+                <!-- Profile Avatar and Level -->
+                <div class="position-relative me-md-4 mb-3 mb-md-0">
+                    <img src="{{ s.icono }}" alt="{{ s.nombre }}" class="rounded border border-secondary"
+                        style="width: 100px; height: 100px; box-shadow: 0 0 20px rgba(0,0,0,0.5);">
+                    <span
+                        class="position-absolute bottom-0 start-50 translate-middle-x badge rounded-pill bg-dark border border-gold-subtle text-gold px-2 py-1 font-monospace"
+                        style="font-size: 0.75rem; bottom: -10px; min-width: 45px;">
+                        {{ s.nivel }}
+                    </span>
+                </div>
+                <!-- Summoner Name and Region -->
+                <div>
+                    <h1 class="text-white font-heading mb-1"
+                        style="font-family: 'Cinzel', serif; font-size: 2.2rem; font-weight: 900; letter-spacing: 1px;">
+                        {{ s.nombre }} <span class="text-gold" style="font-size: 1.5rem; font-weight: normal;">#{{s.tag}}</span>
+                    </h1>
+                    <div class="d-flex align-items-center justify-content-center justify-content-md-start gap-2">
+                        <span class="badge bg-secondary text-uppercase"
+                            style="font-size: 0.7rem; letter-spacing: 0.5px;">LAS</span>
+                        <span class="text-success small fw-bold"><i class="bi bi-check-circle-fill me-1"></i>Perfil
+                            Verificado</span>
+                        <span class="text-secondary small">| Actualizado hace instantes</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 text-center text-md-end mt-4 mt-md-0">
+                <button class="btn btn-outline-gold px-4 py-2 text-uppercase fw-bold" onclick="location.reload()"
+                    style="font-size: 0.8rem; letter-spacing: 1px;">
+                    <i class="bi bi-arrow-clockwise me-1"></i> Actualizar Datos
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Grid -->
+    <div class="row g-4">
+        <!-- Left Column: Rank Stats -->
+        <div class="col-lg-5">
+            <div class="glass-card-premium p-4 h-100">
+                <h3 class="section-title-premium mb-4 text-gold"
+                    style="font-family: 'Cinzel', serif; font-size: 1.1rem; letter-spacing: 1px;">
+                    <i class="bi bi-shield-check me-2"></i>Clasificatoria SoloQ
+                </h3>
+
+                <div class="text-center py-4 bg-dark bg-opacity-30 rounded border border-white border-opacity-5 mb-4">
+                    {% if s.liga == 'Unranked' %}
+                    <img src="{% static 'images/unranked.png' %}" alt="Unranked"
+                        class="img-fluid mb-3 rank-emblem-animation"
+                        style="width: 140px; filter: drop-shadow(0 0 15px rgba(200, 170, 110, 0.25));">
+                    {% else %}
+                    <img src="{{ s.emblema }}" alt="{{ s.liga }}" class="img-fluid mb-3 rank-emblem-animation"
+                        style="width: 140px; filter: drop-shadow(0 0 15px rgba(200, 170, 110, 0.25));">
+                    {% endif %}
+                    <h2 class="text-white font-heading text-uppercase mb-1"
+                        style="font-family: 'Cinzel', serif; letter-spacing: 1.5px; font-size: 1.6rem;">
+                        {{ s.liga }}
+                    </h2>
+                    <p class="text-gold font-monospace fw-bold mb-0" style="font-size: 1.1rem;">
+                        {{ s.lp }} <span class="text-secondary fw-normal small">LP</span>
+                    </p>
+                </div>
+
+                <!-- Win/Loss Ratio Card -->
+                <div
+                    class="d-flex align-items-center justify-content-between p-3 bg-dark bg-opacity-20 rounded border border-white border-opacity-5 mb-3">
+                    <div>
+                        <span class="d-block text-secondary small text-uppercase">Historial de Partidas</span>
+                        <strong class="text-white" style="font-size: 1.05rem;">{{ s.victorias }} victorias / {{ s.derrotas }} derrotas</strong>
+                    </div>
+                    <div class="text-end">
+                        <span class="d-block text-secondary small text-uppercase">Tasa de Victoria</span>
+                        <strong class="text-success font-monospace" style="font-size: 1.25rem;">{{ s.winrate}}%</strong>
+                    </div>
+                </div>
+
+                <!-- Winrate Progress Bar -->
+                <div class="px-1 mb-2">
+                    <div class="d-flex justify-content-between text-secondary small mb-1">
+                        <span>Progreso de Temporada</span>
+                        <span>{{ s.winrate }}% completado</span>
+                    </div>
+                    <div class="progress bg-dark" style="height: 6px; border-radius: 10px; overflow: hidden;">
+                        <div class="progress-bar bg-success" role="progressbar" style="width: {{ s.winrate }}%;"
+                            aria-valuenow="{{ s.winrate }}" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Top Played Champions & Analysis -->
+        <div class="col-lg-7">
+            <div class="glass-card-premium p-4 h-100">
+                <h3 class="section-title-premium mb-4 text-gold"
+                    style="font-family: 'Cinzel', serif; font-size: 1.1rem; letter-spacing: 1px;">
+                    <i class="bi bi-lightning-charge me-2"></i>Campeones Más Jugados
+                </h3>
+
+                <p class="text-secondary small mb-4">
+                    Análisis de rendimiento y consistencia con campeones populares de la grieta.
+                </p>
+
+                <!-- Champions list loop -->
+                <div class="champions-performance-list">
+                    {% for champ in s.campeones %}
+                    <div class="d-flex align-items-center justify-content-between p-3 bg-dark bg-opacity-30 rounded border border-white border-opacity-5 mb-3 performance-item"
+                        style="transition: all 0.2s ease;">
+                        <div class="d-flex align-items-center">
+                            <!-- Simulated Champion icon -->
+                            <div class="position-relative me-3">
+                                <img src="https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/{{ champ.id }}.png"
+                                    alt="{{ champ.name }}"
+                                    onerror="this.src='https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Aatrox.png'"
+                                    class="rounded"
+                                    style="width: 45px; height: 45px; border: 1px solid rgba(255,255,255,0.1);">
+                            </div>
+                            <div>
+                                <strong class="text-white d-block" style="font-size: 1.05rem;">{{ champ.name }}</strong>
+                                <span class="text-secondary small">Partidas Jugadas: {{ champ.plays|default:"0" }}</span>
+                            </div>
+                        </div>
+
+                        <div class="text-end">
+                            <span class="text-success fw-bold font-monospace d-block" style="font-size: 1.1rem;">
+                                {{ champ.winrate|default:"0.0" }}% WR
+                            </span>
+                            <span class="text-secondary small">KDA: {{ champ.kda|default:"0.00" }}</span>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center py-5 rounded border border-white border-opacity-10 position-relative overflow-hidden" style="background: linear-gradient(145deg, rgba(30,30,35,0.8) 0%, rgba(15,15,20,0.9) 100%);">
+                        <div class="position-absolute w-100 h-100 top-0 start-0" style="background: radial-gradient(circle at center, rgba(200,170,110,0.05) 0%, transparent 70%);"></div>
+                        <div class="position-relative z-1">
+                            <div class="mb-3">
+                                <i class="bi bi-controller text-gold opacity-50 display-4" style="filter: drop-shadow(0 0 10px rgba(200,170,110,0.3));"></i>
+                            </div>
+                            <h5 class="text-white font-heading" style="letter-spacing: 1px;">Sin Actividad Reciente</h5>
+                            <p class="text-secondary small mb-0 px-4">No se encontraron datos de campeones jugados recientemente para este invocador en la temporada actual.</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .btn-outline-gold {
+        border-color: #c8aa6e;
+        color: #c8aa6e;
+        transition: all 0.3s ease;
+    }
+
+    .btn-outline-gold:hover {
+        background-color: #c8aa6e;
+        color: #09090b;
+        box-shadow: 0 0 15px rgba(200, 170, 110, 0.4);
+    }
+
+    .bg-dark-gold {
+        background-color: rgba(200, 170, 110, 0.1);
+    }
+
+    .border-gold-subtle {
+        border-color: rgba(200, 170, 110, 0.2) !important;
+    }
+
+    .bg-gold-subtle {
+        background-color: rgba(200, 170, 110, 0.05);
+    }
+
+    .rank-emblem-animation {
+        animation: floatEmblem 3s ease-in-out infinite;
+    }
+
+    @keyframes floatEmblem {
+
+        0%,
+        100% {
+            transform: translateY(0);
+        }
+
+        50% {
+            transform: translateY(-8px);
+        }
+    }
+
+    .performance-item:hover {
+        background-color: rgba(255, 255, 255, 0.02) !important;
+        border-color: rgba(200, 170, 110, 0.2) !important;
+        transform: translateX(4px);
+    }
+</style>
+{% endblock %}

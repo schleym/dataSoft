@@ -1,0 +1,814 @@
+{% extends 'menu.html' %}
+{% block content %}
+<div class="container py-5">
+    
+    <!-- Perfil Header -->
+    <div class="profile-header-card mb-5 animate-fade-in">
+        <div class="profile-glow"></div>
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-4 position-relative z-3">
+            <div class="d-flex align-items-center gap-4 flex-wrap">
+                <div class="profile-avatar-wrap">
+                    <i class="bi bi-person-circle text-gold display-2"></i>
+                    {% if perfil_user.is_staff %}
+                    <span class="badge-role-avatar role-admin"><i class="bi bi-shield-fill-check"></i></span>
+                    {% else %}
+                    <span class="badge-role-avatar role-player"><i class="bi bi-controller"></i></span>
+                    {% endif %}
+                </div>
+                <div>
+                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                        <h1 class="profile-username mb-0">{{ perfil_user.username }}</h1>
+                        {% if perfil_user.is_staff %}
+                        <span class="badge-premium role-admin-badge">
+                            <i class="bi bi-shield-lock-fill me-1"></i>ADMINISTRADOR
+                        </span>
+                        {% else %}
+                        <span class="badge-premium role-player-badge">
+                            <i class="bi bi-person-fill me-1"></i>JUGADOR
+                        </span>
+                        {% endif %}
+                    </div>
+                    <p class="profile-meta-text mb-0 mt-1">
+                        <i class="bi bi-calendar3 me-1"></i> Miembro desde: <span class="text-white">{{ perfil_user.date_joined|date:"M Y" }}</span>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Métricas u.gg de Partidas Manuales -->
+            <div class="d-flex gap-3 flex-wrap">
+                <div class="mini-stat-card border-blue-glow">
+                    <span class="val text-blue-bright">{{ total_partidas }}</span>
+                    <span class="lbl">Partidas Registradas</span>
+                </div>
+                <div class="mini-stat-card border-green-glow">
+                    <span class="val text-green-bright">{{ victorias }}W - {{ derrotas }}L</span>
+                    <span class="lbl">Récord</span>
+                </div>
+                <div class="mini-stat-card border-purple-glow">
+                    <span class="val text-purple-bright">{{ winrate }}%</span>
+                    <span class="lbl">Win Rate</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pestañas de Navegación del Perfil -->
+    <ul class="nav nav-tabs profile-nav-tabs mb-4 gap-2 border-0" id="profileTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="tierlist-tab" data-bs-toggle="tab" data-bs-target="#tierlist-pane" type="button" role="tab" aria-controls="tierlist-pane" aria-selected="true">
+                <i class="bi bi-trophy-fill me-2 text-gold"></i>Tier List Personal
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="matches-tab" data-bs-toggle="tab" data-bs-target="#matches-pane" type="button" role="tab" aria-controls="matches-pane" aria-selected="false">
+                <i class="bi bi-controller me-2 text-blue-bright"></i>Partidas Analizadas
+            </button>
+        </li>
+        {% if perfil_user.is_staff %}
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="changes-tab" data-bs-toggle="tab" data-bs-target="#changes-pane" type="button" role="tab" aria-controls="changes-pane" aria-selected="false">
+                <i class="bi bi-database-fill-lock me-2 text-purple-bright"></i>Cambios de Tier Globales
+            </button>
+        </li>
+        {% endif %}
+        <!-- Pestaña Favoritos (todos los usuarios) -->
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="favoritos-tab" data-bs-toggle="tab" data-bs-target="#favoritos-pane" type="button" role="tab" aria-controls="favoritos-pane" aria-selected="false">
+                <i class="bi bi-heart-fill me-2 text-danger"></i>Favoritos
+                {% if favoritos_campeones %}
+                <span class="badge ms-1" style="background:rgba(239,68,68,0.2);color:#fca5a5;font-size:0.65rem;border:1px solid rgba(239,68,68,0.3);">{{ favoritos_campeones|length }}</span>
+                {% endif %}
+            </button>
+        </li>
+    </ul>
+
+    <!-- Contenido de Pestañas -->
+    <div class="tab-content profile-tab-content animate-fade-in" id="profileTabsContent">
+        
+        <!-- Pestaña 1: Tier List Personal -->
+        <div class="tab-pane fade show active" id="tierlist-pane" role="tabpanel" aria-labelledby="tierlist-tab" tabindex="0">
+            <div class="tab-card-header d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+                <div>
+                    <h3 class="tab-card-title">Clasificaciones y Comentarios de {{ perfil_user.username }}</h3>
+                    <p class="tab-card-subtitle">Tier list customizada del usuario. Los campeones sin calificar muestran su tier global.</p>
+                </div>
+                <div class="input-wrapper-mini">
+                    <i class="bi bi-search search-icon-mini"></i>
+                    <input type="text" id="champSearchInput" placeholder="Filtrar campeón..." class="form-control text-white bg-transparent border-0 ps-5" style="box-shadow: none;">
+                </div>
+            </div>
+
+            <div class="table-responsive premium-table-card">
+                <table class="table table-dark table-hover align-middle mb-0" id="tierListTable">
+                    <thead>
+                        <tr class="text-secondary border-bottom border-secondary-subtle">
+                            <th scope="col" class="py-3 ps-4" style="width: 250px;">Campeón</th>
+                            <th scope="col" class="text-center py-3" style="width: 150px;">Tier Personal</th>
+                            <th scope="col" class="text-center py-3" style="width: 150px;">Tier Global</th>
+                            <th scope="col" class="py-3">Comentarios del Jugador</th>
+                            {% if es_propio %}
+                            <th scope="col" class="text-center py-3" style="width: 120px;">Acciones</th>
+                            {% endif %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in tier_list_usuario %}
+                        <tr class="tier-table-row border-bottom border-light-subtle" data-name="{{ item.nombre|lower }}">
+                            <!-- Perfil del Campeón -->
+                            <td class="py-3 ps-4">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="avatar-wrapper position-relative">
+                                        <img src="{{ item.icon }}" alt="{{ item.nombre }}" class="champ-table-avatar rounded-circle border border-2 border-tier border-tier-{{ item.tier_efectivo|slugify }}">
+                                    </div>
+                                    <div class="d-flex flex-column">
+                                        <span class="fw-bold text-white fs-6">{{ item.nombre }}</span>
+                                        <div class="d-flex gap-1 flex-wrap mt-1">
+                                            {% for role in item.roles %}
+                                            <span class="badge badge-role-tag">{{ role }}</span>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                            
+                            <!-- Tier Personal -->
+                            <td class="text-center py-3">
+                                {% if item.tier_personal %}
+                                <span class="badge-tier-pill tier-pill-{{ item.tier_personal|slugify }}">{{ item.tier_personal }}</span>
+                                {% else %}
+                                <span class="text-muted small italic">Sin personalizar</span>
+                                {% endif %}
+                            </td>
+                            
+                            <!-- Tier Global -->
+                            <td class="text-center py-3">
+                                <span class="badge-tier-pill tier-pill-{{ item.tier_global|slugify }} opacity-75" style="transform: scale(0.9);">{{ item.tier_global }}</span>
+                            </td>
+                            
+                            <!-- Comentarios -->
+                            <td class="py-3">
+                                {% if item.comentario_personal %}
+                                <div class="comment-bubble">
+                                    <i class="bi bi-chat-left-quote-fill text-gold me-2"></i>
+                                    <span>{{ item.comentario_personal }}</span>
+                                </div>
+                                {% else %}
+                                <span class="text-muted small italic">Sin comentarios agregados.</span>
+                                {% endif %}
+                            </td>
+                            
+                            <!-- Acciones -->
+                            {% if es_propio %}
+                            <td class="text-center py-3">
+                                <button type="button" class="btn btn-sm btn-icon-gold rounded-pill px-3 py-1.5" 
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#editTierModal"
+                                        data-champ-id="{{ item.id }}"
+                                        data-champ-name="{{ item.nombre }}"
+                                        data-personal-tier="{{ item.tier_personal|default:'' }}"
+                                        data-personal-comment="{{ item.comentario_personal|default:'' }}"
+                                        title="Editar Tier y Comentario">
+                                    <i class="bi bi-pencil-square me-1"></i>Editar
+                                </button>
+                            </td>
+                            {% endif %}
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center py-5 text-muted">
+                                <i class="bi bi-hourglass-split display-4 mb-3 d-block text-gold"></i>
+                                No se encontraron campeones registrados en el sistema.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Pestaña 2: Partidas Analizadas -->
+        <div class="tab-pane fade" id="matches-pane" role="tabpanel" aria-labelledby="matches-tab" tabindex="0">
+            <div class="tab-card-header mb-4">
+                <h3 class="tab-card-title">Historial de Partidas Analizadas de {{ perfil_user.username }}</h3>
+                <p class="tab-card-subtitle">Registros manuales de partidas jugadas por este usuario y analizadas estratégicamente.</p>
+            </div>
+
+            {% if partidas %}
+            <div class="d-flex flex-column gap-3">
+                {% for p in partidas %}
+                <div class="ugg-match-card {% if p.resultado == 'Victoria' %}victoria-theme{% else %}derrota-theme{% endif %}">
+                    <div class="match-decor"></div>
+                    <div class="p-4 d-flex align-items-center justify-content-between flex-wrap gap-3">
+                        <div class="d-flex align-items-center gap-3 flex-wrap">
+                            <!-- Campeón de la partida -->
+                            <div class="position-relative">
+                                {% if p.campeon_icon %}
+                                <img src="{{ p.campeon_icon }}" alt="{{ p.campeon_nombre }}" class="match-champ-avatar">
+                                {% else %}
+                                <div class="match-champ-avatar-empty"><i class="bi bi-person"></i></div>
+                                {% endif %}
+                                <span class="match-tier-badge tier-{{ p.campeon_tier|lower }}">{{ p.campeon_tier }}</span>
+                            </div>
+                            
+                            <!-- Información básica del resultado -->
+                            <div>
+                                <h4 class="match-champ-name mb-1">{{ p.campeon_nombre|default:"Desconocido" }}</h4>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="match-result-text {% if p.resultado == 'Victoria' %}text-success{% else %}text-danger{% endif %} fw-bold">
+                                        {{ p.resultado|upper }}
+                                    </span>
+                                    <span class="text-muted">•</span>
+                                    <span class="badge bg-dark border border-secondary text-light">{{ p.carril }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Estadísticas de Juego (KDA / Duración) -->
+                        <div class="d-flex align-items-center gap-4 flex-wrap">
+                            <div class="text-center">
+                                <div class="match-kda-nums fs-5">
+                                    <span class="text-white fw-bold">{{ p.kills }}</span>
+                                    <span class="text-muted">/</span>
+                                    <span class="text-danger-subtle fw-bold">{{ p.deaths }}</span>
+                                    <span class="text-muted">/</span>
+                                    <span class="text-blue-bright fw-bold">{{ p.assists }}</span>
+                                </div>
+                                <span class="kda-ratio-badge {% if p.kda >= 3 %}badge-good{% elif p.kda >= 1.5 %}badge-avg{% else %}badge-bad{% endif %} mt-1">
+                                    {{ p.kda }} KDA
+                                </span>
+                            </div>
+                            
+                            <div class="divider-vertical"></div>
+                            
+                            <div class="text-center">
+                                <span class="d-block text-white fw-bold fs-5 mono-font">{{ p.duracion_min }} min</span>
+                                <span class="text-muted small">Duración</span>
+                            </div>
+                            
+                            <div class="divider-vertical"></div>
+                            
+                            <div>
+                                <span class="text-muted d-block small">Fecha de Análisis</span>
+                                <span class="text-white small mono-font"><i class="bi bi-clock me-1 text-gold"></i>{{ p.fecha }}</span>
+                            </div>
+                        </div>
+
+                        <!-- Comentarios y Notas de la Partida -->
+                        <div class="flex-grow-1 mx-lg-4 px-3 py-2 rounded bg-dark bg-opacity-50 border border-secondary border-opacity-25" style="max-width: 450px;">
+                            <span class="text-gold fw-bold d-block mb-1" style="font-size:0.75rem; letter-spacing:0.5px;">ANÁLISIS TÁCTICO:</span>
+                            <p class="mb-0 text-light-emphasis small italic" style="line-height:1.4;">
+                                {% if p.notas %}"{{ p.notas }}"{% else %}<em>Sin notas de análisis adicionales registradas.</em>{% endif %}
+                            </p>
+                        </div>
+
+                        <!-- Acciones si es propio o Admin -->
+                        {% if es_propio or user.is_staff %}
+                        <div class="d-flex gap-2">
+                            <a href="{% url 'editar_partida' p.id %}" class="btn btn-sm btn-outline-light border-secondary rounded px-3" title="Editar Partida">
+                                <i class="bi bi-pencil-square"></i>
+                            </a>
+                            <a href="{% url 'eliminar_partida' p.id %}" class="btn btn-sm btn-outline-danger rounded px-3" onclick="return confirm('¿Seguro que deseas eliminar el registro de esta partida analizada?');" title="Eliminar Partida">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <i class="bi bi-controller text-blue-bright" style="font-size:3.5rem; opacity:0.7;"></i>
+                <h3 class="text-white mt-4 mb-2">Aún no se registran partidas analizadas</h3>
+                <p class="text-light opacity-75">Las partidas registradas de forma manual aparecerán listadas aquí.</p>
+                {% if es_propio %}
+                <a href="/campeones/" class="action-btn-blue mt-3" style="text-decoration:none;">
+                    <i class="bi bi-plus-circle me-2"></i>Ir a campeones para registrar partida
+                </a>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Pestaña 3: Historial de Cambios (Solo Administradores) -->
+        {% if perfil_user.is_staff %}
+        <div class="tab-pane fade" id="changes-pane" role="tabpanel" aria-labelledby="changes-tab" tabindex="0">
+            <div class="tab-card-header mb-4">
+                <h3 class="tab-card-title">Historial de Ajustes de Metagame Realizados</h3>
+                <p class="tab-card-subtitle">Registro de los cambios en los tiers de campeones globales realizados por el administrador en la plataforma.</p>
+            </div>
+
+            {% if historial_cambios %}
+            <div class="table-responsive premium-table-card">
+                <table class="table table-dark table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th scope="col" class="py-3 ps-4">Campeón</th>
+                            <th scope="col" class="py-3">Ajuste de Clasificación</th>
+                            <th scope="col" class="py-3">Motivo del Cambio</th>
+                            <th scope="col" class="py-3">Fecha y hora</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for h in historial_cambios %}
+                        <tr class="reporte-row">
+                            <td class="py-3 ps-4">
+                                <div class="d-flex align-items-center gap-2">
+                                    {% if h.icon %}
+                                    <img src="{{ h.icon }}" alt="{{ h.nombre }}" class="champ-icon" style="width:32px; height:32px;">
+                                    {% else %}
+                                    <div class="champ-icon-empty" style="width:32px; height:32px;"><i class="bi bi-person-fill"></i></div>
+                                    {% endif %}
+                                    <a href="{% url 'campeon_detalle' h.campeon_id %}" class="champ-link text-white fw-bold text-decoration-none">{{ h.nombre }}</a>
+                                </div>
+                            </td>
+                            <td class="py-3">
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="tier-pill tier-{{ h.tier_anterior|lower }}">{{ h.tier_anterior }}</span>
+                                    <i class="bi bi-arrow-right text-gold"></i>
+                                    <span class="tier-pill tier-{{ h.tier_nuevo|lower }}">{{ h.tier_nuevo }}</span>
+                                </div>
+                            </td>
+                            <td class="py-3"><span class="motivo-cell text-light-emphasis">"{{ h.motivo }}"</span></td>
+                            <td class="py-3"><span class="fecha-cell text-muted small">{{ h.fecha }}</span></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <i class="bi bi-archive text-gold" style="font-size:3.5rem; opacity:0.7;"></i>
+                <h3 class="text-white mt-4 mb-2">Sin registros de cambios globales</h3>
+                <p class="text-light opacity-75">Este administrador no ha realizado ningún cambio en los tiers globales del sistema todavía.</p>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <!-- Pestaña Favoritos (todos los usuarios) -->
+        <div class="tab-pane fade" id="favoritos-pane" role="tabpanel" aria-labelledby="favoritos-tab" tabindex="0">
+            <div class="tab-card-header mb-4">
+                <h3 class="tab-card-title"><i class="bi bi-heart-fill me-2 text-danger"></i>Campeones Favoritos de {{ perfil_user.username }}</h3>
+                <p class="tab-card-subtitle">Lista de campeones marcados como favoritos. Puedes agregar favoritos desde la página de detalle de cada campeón.</p>
+            </div>
+
+            {% if favoritos_campeones %}
+            <div class="row g-3">
+                {% for fav in favoritos_campeones %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="fav-champ-card">
+                        <div class="d-flex align-items-center gap-3">
+                            {% if fav.icon %}
+                            <img src="{{ fav.icon }}" alt="{{ fav.nombre }}" class="fav-champ-icon">
+                            {% else %}
+                            <div class="fav-champ-icon-empty"><i class="bi bi-person"></i></div>
+                            {% endif %}
+                            <div class="flex-grow-1">
+                                <div class="d-flex align-items-center gap-2 mb-1">
+                                    <a href="{% url 'campeon_detalle' fav.id %}" class="text-white fw-bold text-decoration-none fav-champ-name">{{ fav.nombre }}</a>
+                                    <span class="fav-tier-pill tier-pill-{{ fav.tier|lower }}">{{ fav.tier }}</span>
+                                </div>
+                                <div class="d-flex gap-1 flex-wrap">
+                                    {% for rol in fav.roles %}
+                                    <span class="badge" style="background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.2);color:#93c5fd;font-size:0.65rem;">{{ rol }}</span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <i class="bi bi-heart-fill text-danger opacity-75" style="font-size:1.1rem;"></i>
+                        </div>
+                        <div class="mt-2 pt-2 border-top border-secondary border-opacity-25">
+                            <span class="text-muted" style="font-size:0.72rem;"><i class="bi bi-clock me-1"></i>Agregado: {{ fav.fecha_favorito }}</span>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <i class="bi bi-heart text-danger" style="font-size:3.5rem; opacity:0.5;"></i>
+                <h3 class="text-white mt-4 mb-2">Sin campeones favoritos aún</h3>
+                <p class="text-light opacity-75">Visita la página de detalle de un campeón y marca tu favorito con el botón ❤️.</p>
+                <a href="/campeones/" class="action-btn-blue mt-3" style="text-decoration:none;">
+                    <i class="bi bi-compass me-2"></i>Explorar Campeones
+                </a>
+            </div>
+            {% endif %}
+        </div>
+
+    </div>
+</div>
+
+<!-- Modal para Editar Tier y Comentario Personalizado -->
+{% if es_propio %}
+<div class="modal fade custom-ugg-modal" id="editTierModal" tabindex="-1" aria-labelledby="editTierModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-secondary border-opacity-25 pb-3">
+                <h5 class="modal-title text-gold" id="editTierModalLabel">
+                    <i class="bi bi-gear-fill me-2"></i>Personalizar Campeón: <span id="modal-champ-name" class="text-white"></span>
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="editTierForm" method="POST" action="">
+                {% csrf_token %}
+                <div class="modal-body py-4">
+                    <p class="text-muted small mb-4">
+                        Modifica tu tier y añade notas tácticas para este campeón en tu perfil. Deja vacío el tier para mostrar el tier global predeterminado.
+                    </p>
+                    
+                    <div class="mb-4">
+                        <label for="modal-tier" class="form-label text-gold fw-bold">Tu Tier Personal</label>
+                        <select name="tier" id="modal-tier" class="form-select bg-dark text-white border-secondary">
+                            <option value="">-- Usar Predeterminado Global --</option>
+                            <option value="S">Tier S (Muy Fuerte)</option>
+                            <option value="A">Tier A (Fuerte)</option>
+                            <option value="B">Tier B (Balanceado)</option>
+                            <option value="C">Tier C (Situacional)</option>
+                            <option value="D">Tier D (Débil)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-2">
+                        <label for="modal-comment" class="form-label text-gold fw-bold">Notas / Comentario Personal</label>
+                        <textarea name="comentario" id="modal-comment" class="form-control bg-dark text-white border-secondary" rows="4" placeholder="Ej: Es un gran pick contra composiciones de engage pesado en este parche..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-secondary border-opacity-25 pt-3">
+                    <button type="button" class="btn btn-outline-secondary text-light" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-gold-solid px-4">
+                        <i class="bi bi-save-fill me-2"></i>Guardar Ajustes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Estilos Avanzados Premium Estilo U.GG -->
+<style>
+    /* Tarjeta del Perfil de Invocador */
+    .profile-header-card {
+        position: relative;
+        background: radial-gradient(circle at top left, #12121c 0%, #08080c 100%);
+        border: 1px solid rgba(200, 170, 110, 0.25);
+        border-radius: 20px;
+        padding: 40px;
+        overflow: hidden;
+        box-shadow: 0 15px 45px rgba(0,0,0,0.6);
+    }
+    
+    .profile-glow {
+        position: absolute;
+        top: -10%;
+        left: -10%;
+        width: 300px;
+        height: 300px;
+        background: radial-gradient(circle, rgba(200, 170, 110, 0.1) 0%, transparent 70%);
+        pointer-events: none;
+        z-index: 1;
+    }
+    
+    .profile-avatar-wrap {
+        position: relative;
+        display: inline-block;
+    }
+    
+    .badge-role-avatar {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #000;
+        font-size: 1.1rem;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+        border: 2px solid #08080c;
+    }
+    
+    .badge-role-avatar.role-admin { background: #c8aa6e; }
+    .badge-role-avatar.role-player { background: #3b82f6; color: #fff; }
+    
+    .profile-username {
+        font-family: 'Cinzel', serif;
+        font-weight: 800;
+        color: white;
+        letter-spacing: 1.5px;
+    }
+    
+    .badge-premium {
+        display: inline-flex;
+        align-items: center;
+        font-size: 0.7rem;
+        font-weight: 800;
+        padding: 4px 12px;
+        border-radius: 20px;
+        letter-spacing: 1px;
+    }
+    
+    .role-admin-badge {
+        background: rgba(200, 170, 110, 0.15);
+        border: 1px solid rgba(200, 170, 110, 0.4);
+        color: #c8aa6e;
+    }
+    
+    .role-player-badge {
+        background: rgba(59, 130, 246, 0.15);
+        border: 1px solid rgba(59, 130, 246, 0.4);
+        color: #93c5fd;
+    }
+    
+    .profile-meta-text {
+        font-size: 0.85rem;
+        color: #a1a1aa;
+    }
+    
+    /* Métrica U.GG */
+    .mini-stat-card {
+        background: rgba(0,0,0,0.4);
+        border: 1px solid rgba(255,255,255,0.05);
+        border-radius: 12px;
+        padding: 14px 22px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-width: 130px;
+        backdrop-filter: blur(5px);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+    }
+    
+    .border-blue-glow { border-color: rgba(59, 130, 246, 0.25) !important; }
+    .border-green-glow { border-color: rgba(34, 197, 94, 0.25) !important; }
+    .border-purple-glow { border-color: rgba(168, 85, 247, 0.25) !important; }
+    
+    .mini-stat-card .val { font-size: 1.3rem; font-weight: 800; font-family: 'Cinzel', serif; line-height: 1.2; }
+    .mini-stat-card .lbl { font-size: 0.68rem; color: #a1a1aa; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 5px; text-align: center; }
+    
+    /* Pestañas de Navegación */
+    .profile-nav-tabs .nav-link {
+        background: rgba(24, 24, 27, 0.4);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        color: #a1a1aa;
+        font-weight: 700;
+        font-size: 0.88rem;
+        padding: 12px 24px;
+        border-radius: 10px;
+        transition: all 0.3s;
+    }
+    
+    .profile-nav-tabs .nav-link:hover {
+        background: rgba(200, 170, 110, 0.05);
+        color: #fff;
+        border-color: rgba(200, 170, 110, 0.2);
+    }
+    
+    .profile-nav-tabs .nav-link.active {
+        background: radial-gradient(circle, rgba(200, 170, 110, 0.15) 0%, rgba(200, 170, 110, 0.03) 100%);
+        border-color: #c8aa6e;
+        color: #f0e6d2;
+        box-shadow: 0 -4px 15px rgba(200, 170, 110, 0.05);
+    }
+    
+    .profile-tab-content {
+        background: rgba(24, 24, 27, 0.6);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255,255,255,0.05);
+        border-radius: 16px;
+        padding: 30px;
+        box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+    }
+    
+    .tab-card-title { font-family: 'Cinzel', serif; font-size: 1.3rem; color: white; letter-spacing: 1px; margin: 0; }
+    .tab-card-subtitle { color: #a1a1aa; font-size: 0.85rem; margin: 5px 0 0; }
+    
+    /* Burbuja de comentario */
+    .comment-bubble {
+        display: inline-flex;
+        align-items: flex-start;
+        background: rgba(0, 0, 0, 0.25);
+        border: 1px solid rgba(255,255,255,0.05);
+        border-radius: 8px;
+        padding: 10px 14px;
+        max-width: 500px;
+        color: #e4e4e7;
+        font-size: 0.85rem;
+        line-height: 1.45;
+    }
+    
+    /* Tarjeta de Partida estilo U.GG */
+    .ugg-match-card {
+        position: relative;
+        background: rgba(10, 10, 14, 0.5);
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        border-radius: 12px;
+        overflow: hidden;
+        transition: all 0.25s ease;
+    }
+    
+    .ugg-match-card:hover {
+        transform: translateY(-2px);
+        background: rgba(10, 10, 14, 0.7);
+    }
+    
+    .match-decor {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        width: 6px;
+    }
+    
+    .victoria-theme { border-color: rgba(34, 197, 94, 0.25); }
+    .victoria-theme .match-decor { background: #22c55e; box-shadow: 0 0 10px #22c55e; }
+    .victoria-theme:hover { border-color: rgba(34, 197, 94, 0.5); }
+    
+    .derrota-theme { border-color: rgba(239, 68, 68, 0.25); }
+    .derrota-theme .match-decor { background: #ef4444; box-shadow: 0 0 10px #ef4444; }
+    .derrota-theme:hover { border-color: rgba(239, 68, 68, 0.5); }
+    
+    .match-champ-avatar { width: 50px; height: 50px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.1); object-fit: cover; }
+    .match-champ-avatar-empty { width: 50px; height: 50px; border-radius: 50%; background: #27272a; display: flex; align-items: center; justify-content: center; color: #a1a1aa; }
+    
+    .match-tier-badge {
+        position: absolute;
+        bottom: -4px;
+        right: -4px;
+        font-size: 0.65rem;
+        font-weight: 800;
+        padding: 1px 5px;
+        border-radius: 4px;
+        color: white;
+    }
+    
+    .match-tier-badge.tier-s { background: #ff8c00; }
+    .match-tier-badge.tier-a { background: #be3eff; }
+    .match-tier-badge.tier-b { background: #3e8bff; }
+    .match-tier-badge.tier-c { background: #3effbf; color: #000; }
+    .match-tier-badge.tier-d { background: #8c8c8c; }
+    
+    .match-champ-name { font-size: 1.1rem; font-weight: 700; color: white; }
+    .divider-vertical { width: 1px; height: 35px; background: rgba(255,255,255,0.08); }
+    
+    .kda-ratio-badge {
+        font-size: 0.7rem;
+        font-weight: 700;
+        padding: 2px 7px;
+        border-radius: 5px;
+        display: inline-block;
+    }
+    
+    .mono-font { font-family: monospace; }
+    
+    /* Modales Estilo Hextech / U.GG */
+    .custom-ugg-modal .modal-content {
+        background: #0f0f15;
+        border: 1px solid #c8aa6e;
+        border-radius: 16px;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+    }
+    
+    .btn-gold-solid {
+        background: linear-gradient(135deg, #c8aa6e, #9e8248);
+        border: none;
+        color: #000;
+        font-weight: 700;
+        transition: all 0.3s;
+    }
+    
+    .btn-gold-solid:hover {
+        background: #c8aa6e;
+        transform: translateY(-1px);
+        box-shadow: 0 0 15px rgba(200,170,110,0.3);
+    }
+
+    /* ── Favoritos Cards ─────────────────────────────────────────────── */
+    .fav-champ-card {
+        background: rgba(24,24,27,0.5);
+        border: 1px solid rgba(239,68,68,0.15);
+        border-radius: 14px;
+        padding: 16px;
+        transition: all 0.25s ease;
+    }
+    .fav-champ-card:hover {
+        border-color: rgba(239,68,68,0.35);
+        background: rgba(239,68,68,0.04);
+        transform: translateY(-2px);
+    }
+    .fav-champ-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        border: 2px solid rgba(239,68,68,0.3);
+        object-fit: cover;
+    }
+    .fav-champ-icon-empty {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: #27272a;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #a1a1aa;
+    }
+    .fav-champ-name { font-size: 0.95rem; transition: color 0.2s; }
+    .fav-champ-name:hover { color: #c8aa6e !important; }
+    .fav-tier-pill {
+        font-size: 0.65rem;
+        font-weight: 800;
+        padding: 2px 8px;
+        border-radius: 6px;
+    }
+    .tier-pill-s { background: rgba(255,140,0,0.2); color: #ff8c00; border: 1px solid rgba(255,140,0,0.4); }
+    .tier-pill-a { background: rgba(190,62,255,0.2); color: #be3eff; border: 1px solid rgba(190,62,255,0.4); }
+    .tier-pill-b { background: rgba(62,139,255,0.2); color: #3e8bff; border: 1px solid rgba(62,139,255,0.4); }
+    .tier-pill-c { background: rgba(62,255,191,0.2); color: #3effbf; border: 1px solid rgba(62,255,191,0.4); }
+    .tier-pill-d { background: rgba(140,140,140,0.2); color: #8c8c8c; border: 1px solid rgba(140,140,140,0.4); }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .action-btn-blue {
+        display: inline-flex;
+        align-items: center;
+        padding: 10px 24px;
+        background: rgba(59,130,246,0.15);
+        border: 1px solid rgba(59,130,246,0.3);
+        border-radius: 10px;
+        color: #93c5fd;
+        font-weight: 700;
+        font-size: 0.85rem;
+        transition: all 0.25s;
+    }
+    .action-btn-blue:hover {
+        background: rgba(59,130,246,0.25);
+        color: #60a5fa;
+        transform: translateY(-2px);
+    }
+    .text-purple-bright { color: #c084fc !important; }
+    .text-blue-bright { color: #60a5fa !important; }
+    .text-green-bright { color: #4ade80 !important; }
+
+</style>
+
+<!-- Script para el modal dinámico de Tier List -->
+{% if es_propio %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const editModal = document.getElementById('editTierModal');
+        if (editModal) {
+            editModal.addEventListener('show.bs.modal', function(event) {
+                // Botón que disparó el modal
+                const button = event.relatedTarget;
+                
+                // Extraer datos del botón
+                const champId = button.getAttribute('data-champ-id');
+                const champName = button.getAttribute('data-champ-name');
+                const personalTier = button.getAttribute('data-personal-tier');
+                const personalComment = button.getAttribute('data-personal-comment');
+                
+                // Actualizar elementos del modal
+                const modalTitleSpan = editModal.querySelector('#modal-champ-name');
+                const editForm = editModal.querySelector('#editTierForm');
+                const tierSelect = editModal.querySelector('#modal-tier');
+                const commentTextarea = editModal.querySelector('#modal-comment');
+                
+                modalTitleSpan.textContent = champName;
+                editForm.action = `/usuario/tier/guardar/${champId}/`;
+                tierSelect.value = personalTier;
+                commentTextarea.value = personalComment;
+            });
+        }
+        
+        // Filtro de tabla interno
+        const searchInput = document.getElementById("champSearchInput");
+        if (searchInput) {
+            searchInput.addEventListener("input", function() {
+                const query = this.value.toLowerCase().trim();
+                const rows = document.querySelectorAll("#tierListTable tbody tr");
+                
+                rows.forEach(row => {
+                    const name = row.getAttribute("data-name") || "";
+                    if (name.includes(query)) {
+                        row.classList.remove("d-none");
+                    } else {
+                        row.classList.add("d-none");
+                    }
+                });
+            });
+        }
+    });
+</script>
+{% endif %}
+
+{% endblock %}

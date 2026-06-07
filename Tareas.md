@@ -1,0 +1,2 @@
+1- Mejorar diferenciasion de usuarios en apartados (tier list de personajes, historial de cambio de tier list de personajes, partidas tipeadas manualmente )
+2- sacar reportes en pdf de los historiales  

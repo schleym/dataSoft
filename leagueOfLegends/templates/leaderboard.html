@@ -1,0 +1,149 @@
+{% extends 'menu.html' %}
+{% block content %}
+<div class="container py-5 mt-4">
+    <div class="row mb-5 align-items-center">
+        <div class="col-md-8 text-center text-md-start">
+            <h1 class="display-4 font-heading text-white mb-2" style="font-family: 'Cinzel', serif; letter-spacing: 2px;">
+                LEADERBOARD <span class="text-gold">CHALLENGER</span>
+            </h1>
+            <p class="text-secondary mb-0">
+                Los mejores invocadores de la región <strong class="text-gold">LAS</strong> compitiendo en la Grieta del Invocador en tiempo real.
+            </p>
+        </div>
+        <div class="col-md-4 text-center text-md-end mt-4 mt-md-0">
+            <div class="d-inline-flex align-items-center bg-dark-gold border border-gold-subtle rounded px-4 py-3">
+                <img src="https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-shared-components/global/default/challenger.png" alt="Challenger" style="width: 50px;" class="me-3">
+                <div class="text-start">
+                    <span class="d-block text-gold small fw-bold" style="letter-spacing: 1px;">SERVIDOR</span>
+                    <strong class="text-white font-heading" style="font-size: 1.2rem;">LAS (LA2)</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaderboard Table Card -->
+    <div class="glass-card-premium p-4 shadow-lg border border-opacity-10 border-white">
+        <div class="table-responsive">
+            <table class="table table-dark table-hover align-middle mb-0" style="background: transparent;">
+                <thead>
+                    <tr class="text-gold" style="border-bottom: 2px solid rgba(200, 170, 110, 0.3); font-family: 'Cinzel', serif; letter-spacing: 1px; font-size: 0.9rem;">
+                        <th class="py-3 text-center" style="width: 80px;">RANGO</th>
+                        <th class="py-3">INVOCADOR</th>
+                        <th class="py-3 text-center" style="width: 150px;">LIGA</th>
+                        <th class="py-3 text-end" style="width: 120px;">LPs</th>
+                        <th class="py-3 text-center" style="width: 250px;">WINRATE</th>
+                        <th class="py-3 text-center">CAMPEONES TOP</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in ranking %}
+                    <tr class="leaderboard-row" style="border-bottom: 1px solid rgba(255,255,255,0.05); transition: all 0.2s ease;">
+                        <!-- Posición -->
+                        <td class="text-center py-3">
+                            {% if r.posicion == 1 %}
+                                <span class="badge rounded-circle bg-gold-crown text-dark d-inline-flex align-items-center justify-content-center fw-extrabold" style="width: 32px; height: 32px; font-size: 1.1rem; box-shadow: 0 0 15px rgba(200, 170, 110, 0.6);">1</span>
+                            {% elif r.posicion == 2 %}
+                                <span class="badge rounded-circle bg-silver-crown text-dark d-inline-flex align-items-center justify-content-center fw-extrabold" style="width: 30px; height: 30px; font-size: 1rem;">2</span>
+                            {% elif r.posicion == 3 %}
+                                <span class="badge rounded-circle bg-bronze-crown text-dark d-inline-flex align-items-center justify-content-center fw-extrabold" style="width: 28px; height: 28px; font-size: 0.95rem;">3</span>
+                            {% else %}
+                                <span class="text-secondary font-monospace fw-bold" style="font-size: 1.1rem;">{{ r.posicion }}</span>
+                            {% endif %}
+                        </td>
+                        
+                        <!-- Invocador Avatar + Nombre -->
+                        <td class="py-3">
+                            <div class="d-flex align-items-center">
+                                <div class="position-relative me-3">
+                                    <img src="{{ r.icono }}" alt="{{ r.nombre }}" class="rounded border border-secondary" style="width: 42px; height: 42px;">
+                                    <span class="position-absolute bottom-0 end-0 translate-middle-y badge rounded bg-dark border border-gold-subtle text-gold" style="font-size: 0.6rem; padding: 2px 4px;">{{ r.posicion }}</span>
+                                </div>
+                                <div>
+                                    <a href="{% url 'inicio' %}?q={{ r.nombre }}%23{{ r.tag }}" class="summoner-link text-white fw-bold text-decoration-none" style="font-size: 1.05rem;">
+                                        {{ r.nombre }}
+                                    </a>
+                                    <span class="text-secondary d-block small">#{{ r.tag }}</span>
+                                </div>
+                            </div>
+                        </td>
+                        
+                        <!-- Liga Emblema -->
+                        <td class="text-center py-3">
+                            <div class="d-inline-flex align-items-center bg-dark bg-opacity-50 px-3 py-1 rounded border border-white border-opacity-5">
+                                <img src="https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-shared-components/global/default/challenger.png" alt="Challenger" style="width: 22px;" class="me-2">
+                                <span class="small font-heading text-white-50" style="font-size: 0.8rem; letter-spacing: 0.5px;">{{ r.liga|upper }}</span>
+                            </div>
+                        </td>
+                        
+                        <!-- LP -->
+                        <td class="text-end py-3 font-monospace fw-bold text-gold" style="font-size: 1.05rem;">
+                            {{ r.lp }} <span class="small text-secondary fw-normal">LP</span>
+                        </td>
+                        
+                        <!-- Winrate -->
+                        <td class="py-3 text-center">
+                            <div class="d-inline-block w-100 px-3 text-start">
+                                <div class="d-flex justify-content-between mb-1 small text-secondary">
+                                    <span class="font-monospace text-success fw-bold">{{ r.winrate }}% WR</span>
+                                    <span>{{ r.victorias }}W - {{ r.derrotas }}L</span>
+                                </div>
+                                <div class="progress bg-dark" style="height: 5px; border-radius: 10px; overflow: hidden;">
+                                    <div class="progress-bar bg-success" role="progressbar" style="width: {{ r.winrate }}%;" aria-valuenow="{{ r.winrate }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                            </div>
+                        </td>
+                        
+                        <!-- Campeones Más Jugados -->
+                        <td class="text-center py-3">
+                            <div class="d-flex align-items-center justify-content-center gap-1">
+                                {% for champ in r.campeones %}
+                                <span class="badge bg-dark border border-gold-subtle text-light rounded-pill px-2 py-1 d-flex align-items-center gap-2 hover-glow" style="transition: all 0.2s;">
+                                    <img src="https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/{{ champ.id }}.png" class="rounded-circle" style="width: 18px; height: 18px;" alt="{{ champ.name }}">
+                                    <span style="font-size: 0.75rem; font-weight: 600;">{{ champ.name }}</span>
+                                </span>
+                                {% endfor %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center py-5 text-secondary">
+                            <i class="bi bi-exclamation-circle text-gold display-4 d-block mb-3"></i>
+                            No se pudo cargar el ranking de LAS. Por favor intenta de nuevo más tarde.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+    .bg-gold-crown { background: radial-gradient(circle, #ffe699 0%, #c8aa6e 100%) !important; color: #09090b !important; }
+    .bg-silver-crown { background: radial-gradient(circle, #f1f5f9 0%, #cbd5e1 100%) !important; color: #09090b !important; }
+    .bg-bronze-crown { background: radial-gradient(circle, #fed7aa 0%, #ca8a04 100%) !important; color: #09090b !important; }
+    
+    .leaderboard-row:hover {
+        background-color: rgba(255, 255, 255, 0.02) !important;
+        transform: scale(1.002);
+    }
+    
+    .summoner-link:hover {
+        color: #c8aa6e !important;
+        text-shadow: 0 0 10px rgba(200,170,110,0.3);
+    }
+
+    .bg-dark-gold {
+        background-color: rgba(200, 170, 110, 0.1);
+    }
+
+    .border-gold-subtle {
+        border-color: rgba(200, 170, 110, 0.2);
+    }
+    
+    .fw-extrabold {
+        font-weight: 900;
+    }
+</style>
+{% endblock %}

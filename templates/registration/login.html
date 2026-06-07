@@ -1,0 +1,80 @@
+{% extends 'menu.html' %}
+{% block content %}
+<section class="d-flex align-items-center justify-content-center" style="min-height: 80vh;">
+    <div class="login-card">
+        <div class="login-header text-center">
+            <h2 class="tituloPrincipal" style="font-size: 3rem;">Acceso</h2>
+            <p class="text-muted">Inicia sesión para gestionar los datos de DataSoft</p>
+        </div>
+        
+        <form method="post" class="mt-4">
+            {% csrf_token %}
+            
+            {% if form.errors %}
+            <div class="alert alert-danger bg-danger bg-opacity-10 border-danger text-danger">
+                Credenciales incorrectas. Por favor, intenta de nuevo.
+            </div>
+            {% endif %}
+
+            <div class="mb-4">
+                <label for="id_username" class="form-label text-gold">Usuario</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-dark border-secondary text-gold"><i class="bi bi-person"></i></span>
+                    <input type="text" name="username" class="form-control bg-dark text-white border-secondary" id="id_username" required>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label for="id_password" class="form-label text-gold">Contraseña</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-dark border-secondary text-gold"><i class="bi bi-lock"></i></span>
+                    <input type="password" name="password" class="form-control bg-dark text-white border-secondary" id="id_password" required>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-explorar w-100 py-3">
+                <span>Entrar</span>
+                <i class="bi bi-box-arrow-in-right ms-2"></i>
+            </button>
+            
+            <input type="hidden" name="next" value="{{ next }}">
+        </form>
+        
+        <div class="mt-4 text-center">
+            <p class="text-muted mb-2">¿No tienes cuenta? <a href="{% url 'registro' %}" class="text-gold text-decoration-none hover-underline" style="font-weight: 600;">Regístrate aquí</a></p>
+            <p class="text-muted small">Nota: Solo los administradores pueden gestionar y modificar campeones en MongoDB.</p>
+        </div>
+    </div>
+</section>
+
+<style>
+    .hover-underline:hover {
+        text-decoration: underline !important;
+    }
+
+    .login-card {
+        background: rgba(24, 24, 27, 0.8);
+        backdrop-filter: blur(25px);
+        border: 1px solid rgba(200, 170, 110, 0.3);
+        padding: 50px;
+        border-radius: 25px;
+        width: 100%;
+        max-width: 450px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
+    }
+
+    .text-gold {
+        color: #c8aa6e;
+        font-weight: 600;
+    }
+
+    .input-group-text {
+        border-right: none;
+    }
+
+    .form-control:focus {
+        border-color: #c8aa6e;
+        box-shadow: 0 0 10px rgba(200, 170, 110, 0.2);
+    }
+</style>
+{% endblock %}

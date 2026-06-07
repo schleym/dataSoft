@@ -1,0 +1,261 @@
+{% extends 'menu.html' %}
+{% block content %}
+<!-- Hero Section Mejorada -->
+<section class="hero-premium">
+    <div class="hero-overlay"></div>
+    <div class="containerPrincipal">
+        <img class="bannerSuperior"
+            src="https://c4.wallpaperflare.com/wallpaper/510/28/894/vayne-digital-art-league-of-legends-vayne-league-of-legends-wallpaper-preview.jpg"
+            alt="League of Legends Background">
+
+        <div class="contenido-header">
+            <div class="hero-badge">
+                <i class="bi bi-stars"></i> Plataforma de Análisis de Datos
+            </div>
+            <h1 class="tituloPrincipal">DataSoft</h1>
+            <p class="parrafoBanner">Domina la Grieta con inteligencia artificial y datos en tiempo real. Datos
+                actualizados al <span class="badge-parche">Patch 14.10</span></p>
+
+            <form class="buscador-premium" method="GET" action="{% url 'buscar' %}">
+                <div class="input-wrapper">
+                    <i class="bi bi-search search-icon"></i>
+                    <input type="text" name="q" placeholder="Buscar invocador o campeón..." required>
+                </div>
+
+                <div class="region-wrapper">
+                    <select name="selectorServidor" class="selectorRegion">
+                        <option value="las">LAS</option>
+                        <option value="lan">LAN</option>
+                        <option value="br">BR</option>
+                        <option value="na">NA</option>
+                        <option value="euw">EUW</option>
+                        <option value="kr">KR</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn-explorar">
+                    <span>Explorar</span>
+                    <i class="bi bi-arrow-right-short"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+</section>
+
+<!-- Sección de Estadísticas Rápidas -->
+<div class="stats-bar">
+    <div class="stat-item">
+        <span class="stat-value">160+</span>
+        <span class="stat-label">Campeones</span>
+    </div>
+    <div class="divider"></div>
+    <div class="stat-item">
+        <span class="stat-value">1.2M</span>
+        <span class="stat-label">Partidas Analizadas</span>
+    </div>
+    <div class="divider"></div>
+    <div class="stat-item">
+        <span class="stat-value">Real-time</span>
+        <span class="stat-label">API Status</span>
+    </div>
+    <div class="divider"></div>
+    <div class="stat-item">
+        <span class="stat-value">Top 1%</span>
+        <span class="stat-label">Accuracy</span>
+    </div>
+</div>
+
+<!-- Sección: Características del Sistema -->
+<section class="seccion-features">
+    <div class="container-meta">
+        <div class="text-center mb-5">
+            <h2 class="titulo-seccion">Por qué DataSoft</h2>
+            <p class="subtitulo-seccion">Herramientas diseñadas para la victoria</p>
+        </div>
+
+        <div class="grid-features">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="bi bi-lightning-charge-fill"></i>
+                </div>
+                <h3>Análisis Veloz</h3>
+                <p>Obtén estadísticas de tus oponentes en menos de 1 segundo durante la carga.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="bi bi-graph-up-arrow"></i>
+                </div>
+                <h3>Predicción de Meta</h3>
+                <p>Nuestros algoritmos identifican los picks ganadores antes que nadie.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="bi bi-shield-check"></i>
+                </div>
+                <h3>Builds Optimizadas</h3>
+                <p>Configuraciones de runas y objetos basadas en matchups específicos.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="bi bi-trophy-fill"></i>
+                </div>
+                <h3>Seguimiento Pro</h3>
+                <p>Analiza el rendimiento de los mejores jugadores del mundo en KR y EUW.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Sección: Campeones Meta -->
+<section class="seccion-meta">
+    <div class="container-meta">
+        <h2 class="titulo-seccion">Reyes del Meta <span class="parche-actual">14.10</span></h2>
+
+        <div class="grid-campeones">
+            {% for p in personajes|slice:":3" %}
+            <!-- Carta -->
+            <a href="{% url 'campeon_detalle' p.id %}" class="text-decoration-none">
+                <div class="carta-campeon">
+                    <img src="{{ p.splash }}" alt="{{ p.nombre }}"
+                        class="bg-campeon">
+                    <div class="info-campeon">
+                        <div class="header-carta">
+                            <span class="tier-badge tier-s">{{ p.tier }}</span>
+                            <i class="rol-icon bi bi-stars"></i>
+                        </div>
+                        <div class="datos-carta">
+                            <h3>{{ p.nombre }}</h3>
+                            <p>{{ p.estadisticas.winrate }}% Winrate • {{ p.roles.0 }}</p>
+                        </div>
+                    </div>
+                </div>
+            </a>
+            {% empty %}
+            <p class="text-center text-muted">No hay campeones registrados en MongoDB aún.</p>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- Nueva Sección: Aspectos Destacados -->
+<section class="seccion-skins">
+    <div class="container-meta">
+        <div class="header-leaderboard d-flex justify-content-between align-items-center mb-4">
+            <h2 class="titulo-seccion m-0 text-white" style="font-family: 'Cinzel', serif; letter-spacing: 2px;">
+                <span class="text-gold"><i class="bi bi-stars"></i></span> Aspectos Destacados
+            </h2>
+            <a href="{% url 'campeones' %}" class="enlace-dorado text-decoration-none border border-gold-subtle px-3 py-1 rounded hover-glow">Ver Colección <i class="bi bi-arrow-right"></i></a>
+        </div>
+ 
+        <div class="skins-grid" style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 20px;">
+            <div class="skin-card main-skin position-relative overflow-hidden rounded-4 shadow-lg border border-white border-opacity-10 hover-lift" style="height: 350px;">
+                <img src="https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Ahri_27.jpg" alt="Flor Espiritual Ahri" class="w-100 h-100 object-fit-cover transition-transform">
+                <div class="skin-info position-absolute bottom-0 start-0 w-100 p-4" style="background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);">
+                    <span class="badge bg-gold text-dark mb-2 px-3 py-1 fw-bold border border-warning" style="letter-spacing: 1px; font-size: 0.75rem;"><i class="bi bi-gem"></i> MITICO</span>
+                    <h3 class="text-white mb-1" style="font-family: 'Cinzel', serif; font-size: 1.8rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.8);">Flor Espiritual Ahri</h3>
+                    <p class="text-secondary m-0" style="font-size: 0.95rem;">Un alma pura guiando el camino</p>
+                </div>
+            </div>
+            <div class="skin-card position-relative overflow-hidden rounded-4 shadow border border-white border-opacity-10 hover-lift" style="height: 350px;">
+                <img src="https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Zed_15.jpg" alt="Zed Exterminador Galáctico" class="w-100 h-100 object-fit-cover transition-transform">
+                <div class="skin-info position-absolute bottom-0 start-0 w-100 p-3" style="background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);">
+                    <span class="badge bg-danger text-white mb-2 px-2 py-1" style="font-size: 0.65rem;">LEGENDARIO</span>
+                    <h3 class="text-white mb-1" style="font-family: 'Cinzel', serif; font-size: 1.2rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.8);">Zed Exterminador</h3>
+                    <p class="text-secondary m-0 small">Sombras Cósmicas</p>
+                </div>
+            </div>
+            <div class="skin-card position-relative overflow-hidden rounded-4 shadow border border-white border-opacity-10 hover-lift" style="height: 350px;">
+                <img src="https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Pyke_44.jpg" alt="Pyke Empíreo" class="w-100 h-100 object-fit-cover transition-transform">
+                <div class="skin-info position-absolute bottom-0 start-0 w-100 p-3" style="background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);">
+                    <span class="badge bg-info text-dark mb-2 px-2 py-1" style="font-size: 0.65rem;">LEGENDARIO</span>
+                    <h3 class="text-white mb-1" style="font-family: 'Cinzel', serif; font-size: 1.2rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.8);">Pyke Empíreo</h3>
+                    <p class="text-secondary m-0 small">Llamas del Abismo</p>
+                </div>
+            </div>
+        </div>
+        
+        <style>
+            .hover-lift { transition: transform 0.3s ease, box-shadow 0.3s ease; cursor: pointer; }
+            .hover-lift:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(200, 170, 110, 0.3) !important; }
+            .hover-lift:hover .transition-transform { transform: scale(1.05); }
+            .transition-transform { transition: transform 0.5s ease; }
+            .hover-glow:hover { background-color: rgba(200,170,110,0.1); box-shadow: 0 0 10px rgba(200,170,110,0.2); color: #c8aa6e !important; }
+            .bg-gold { background-color: #c8aa6e; }
+        </style>
+    </div>
+</section>
+ 
+<!-- Sección: Leaderboard Top Jugadores -->
+<section class="seccion-leaderboard">
+    <div class="container-meta">
+        <div class="header-leaderboard d-flex justify-content-between align-items-center mb-4">
+            <h2 class="titulo-seccion m-0 text-white" style="font-family: 'Cinzel', serif; letter-spacing: 2px;">
+                <span class="text-gold"><i class="bi bi-trophy"></i></span> Top Invocadores <span class="parche-actual ms-2">LAS</span>
+            </h2>
+            <a href="{% url 'leaderboard' %}" class="enlace-dorado text-decoration-none border border-gold-subtle px-3 py-1 rounded hover-glow text-gold">Ver Ranking Completo <i class="bi bi-arrow-right"></i></a>
+        </div>
+ 
+        <div class="lista-jugadores">
+            {% for r in ranking %}
+            <!-- Rank Card -->
+            <div class="jugador-card rank-{{ r.posicion }} glass-card-premium p-4 mb-3 rounded-4 border border-white border-opacity-10 d-flex justify-content-between align-items-center" style="background: linear-gradient(135deg, rgba(20,20,20,0.8), rgba(10,10,10,0.95)); transition: all 0.3s ease; border-left: 4px solid #c8aa6e !important;">
+                <div class="d-flex align-items-center gap-4">
+                    <div class="rank-posicion text-gold fw-bold font-heading" style="font-size: 1.8rem; min-width: 40px; text-align: center;">#{{ r.posicion }}</div>
+                    <div class="jugador-perfil d-flex align-items-center gap-3">
+                        <div class="avatar-container position-relative">
+                            <img class="icono-invocador rounded-circle border border-2 border-secondary" src="{{ r.icono }}" alt="Icon" style="width: 65px; height: 65px; box-shadow: 0 0 15px rgba(0,0,0,0.5);">
+                            <span class="nivel-invocador position-absolute bottom-0 start-50 translate-middle-x badge bg-dark border border-gold-subtle text-gold px-2 py-1" style="font-size: 0.7rem;">LP {{ r.lp }}</span>
+                        </div>
+                        <div class="info-jugador">
+                            <h4 class="text-white mb-1" style="font-size: 1.25rem;">{{ r.nombre }} <span class="text-secondary fw-normal small">#{{ r.tag }}</span></h4>
+                            <div class="liga-info d-flex align-items-center gap-2">
+                                <img src="https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-shared-components/global/default/challenger.png" alt="Challenger" class="icono-liga" style="width: 20px;">
+                                <span class="text-gold small fw-bold text-uppercase" style="letter-spacing: 0.5px;">{{ r.liga }} - LAS</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center gap-4">
+                    <div class="main-champs d-flex gap-2">
+                        {% for champ in r.campeones %}
+                        <div class="badge bg-dark border border-gold-subtle text-light rounded-pill px-2 py-1 d-flex align-items-center gap-2 hover-glow" style="transition: all 0.2s;">
+                            <img src="https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/{{ champ.id }}.png" class="rounded-circle" style="width: 18px; height: 18px;" alt="{{ champ.name }}">
+                            <span style="font-size: 0.8rem; font-weight: 600;">{{ champ.name }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="winrate-jugador text-end" style="min-width: 150px;">
+                        <span class="text-success fw-bold d-block mb-1" style="font-size: 1.1rem; font-family: monospace;">{{ r.winrate }}% Winrate</span>
+                        <div class="progress bg-dark mb-1" style="height: 6px;">
+                            <div class="progress-bar bg-success" role="progressbar" style="width: {{ r.winrate }}%;"></div>
+                        </div>
+                        <span class="text-secondary small">{{ r.victorias }}W - {{ r.derrotas }}L</span>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <p class="text-secondary text-center my-4 py-4 w-100"><i class="bi bi-hourglass-split me-2 text-gold"></i>Cargando ranking de invocadores...</p>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- Sección CTA (Call to Action) -->
+<section class="seccion-cta">
+    <div class="container-meta">
+        <div class="cta-card">
+            <div class="cta-content">
+                <h2>¿Listo para subir de elo?</h2>
+                <p>Únete a miles de jugadores que ya están optimizando sus partidas con DataSoft.</p>
+                <div class="cta-btns">
+                    <a href="#" class="btn-cta-primary">Empezar Ahora</a>
+                    <a href="#" class="btn-cta-secondary">Ver Guías</a>
+                </div>
+            </div>
+            <div class="cta-image">
+                <img src="https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Kayle_0.jpg" alt="Kayle">
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,293 @@
+{% extends 'menu.html' %}
+{% block content %}
+<div class="container py-5">
+
+    <!-- Badge de Acceso -->
+    <div class="admin-badge mb-3">
+        <i class="bi bi-controller me-2"></i>Análisis de Partidas de la Comunidad
+    </div>
+
+    <!-- Header -->
+    <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-3">
+        <div class="d-flex align-items-center gap-3">
+            <a href="{% url 'gestion_campeones' %}" class="btn-volver">
+                <i class="bi bi-arrow-left"></i>
+            </a>
+            <div>
+                <p class="tipo-relacion mb-1">
+                    <span class="badge-relacion badge-referenciada">
+                        <i class="bi bi-link-45deg me-1"></i>Relación Referenciada
+                    </span>
+                </p>
+                <h1 class="page-title mb-0">Partidas Analizadas</h1>
+                <p class="page-subtitle">Registro de todas las partidas jugadas con sus estadísticas asociadas al campeón.</p>
+            </div>
+        </div>
+        <a href="{% url 'reporte_historial_tier' %}" class="nav-report-link nav-link-gold">
+            <i class="bi bi-database-fill-lock me-2"></i>Ver Historial de Tier →
+        </a>
+    </div>
+
+    <!-- Filtro de Búsqueda de Usuario -->
+    <div class="dashboard-controls d-flex flex-wrap align-items-center justify-content-between p-3 gap-3 mb-4 rounded-3" style="background: rgba(20, 20, 26, 0.6); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px;">
+        <form method="GET" class="d-flex align-items-center gap-2 flex-grow-1" style="max-width: 450px;">
+            <div class="input-group">
+                <span class="input-group-text bg-dark border-secondary text-gold"><i class="bi bi-person-search"></i></span>
+                <input type="text" name="usuario" value="{{ username_filter }}" class="form-control bg-dark text-white border-secondary" placeholder="Filtrar por nombre de usuario (ej: admin)...">
+                <button type="submit" class="btn btn-primary" style="background:#c8aa6e; border-color:#c8aa6e; color:#000; font-weight:700;">Buscar</button>
+                {% if username_filter %}
+                <a href="{% url 'reporte_partidas_analizadas' %}" class="btn btn-outline-secondary">Limpiar</a>
+                {% endif %}
+            </div>
+        </form>
+        <div class="text-muted small">
+            {% if username_filter %}
+            Mostrando partidas de: <strong class="text-gold">{{ username_filter }}</strong>
+            {% else %}
+            Mostrando todas las partidas de la comunidad
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Métricas -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-3">
+            <div class="metric-card border-blue">
+                <div class="metric-icon-wrap icon-bg-blue"><i class="bi bi-controller text-blue-bright"></i></div>
+                <div class="metric-body">
+                    <span class="metric-number text-blue-bright">{{ total_partidas }}</span>
+                    <span class="metric-label">Partidas Jugadas</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="metric-card border-green">
+                <div class="metric-icon-wrap icon-bg-green"><i class="bi bi-trophy-fill text-green-bright"></i></div>
+                <div class="metric-body">
+                    <span class="metric-number text-green-bright">{{ victorias }}</span>
+                    <span class="metric-label">Victorias</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="metric-card border-red">
+                <div class="metric-icon-wrap icon-bg-red"><i class="bi bi-x-circle-fill text-red-bright"></i></div>
+                <div class="metric-body">
+                    <span class="metric-number text-red-bright">{{ derrotas }}</span>
+                    <span class="metric-label">Derrotas</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="metric-card border-purple">
+                <div class="metric-icon-wrap icon-bg-purple"><i class="bi bi-graph-up-arrow text-purple-bright"></i></div>
+                <div class="metric-body">
+                    <span class="metric-number text-purple-bright">{{ winrate }}%</span>
+                    <span class="metric-label">Porcentaje de victoria</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Explicación -->
+    <div class="explain-banner explain-blue mb-4">
+        <i class="bi bi-lightbulb-fill text-blue-bright" style="font-size:1.4rem; flex-shrink:0;"></i>
+        <div>
+            <strong class="text-blue-bright">¿De dónde vienen estos datos?</strong>
+            <p class="mb-0 explain-text mt-1">
+                La tabla muestra datos combinados. Las partidas vienen de su propia lista (<code>partidas_analizadas</code>), la cual solo guarda el ID del campeón.
+                Al cargar esta vista, el sistema busca automáticamente la información visual del campeón (nombre, icono y tier) en la otra tabla y los junta. A esto se le llama una <strong>relación referenciada</strong>.
+            </p>
+        </div>
+    </div>
+
+    <!-- Tabla -->
+    {% if partidas %}
+    <div class="report-table-card">
+        <div class="table-responsive">
+            <table class="table reporte-table align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Campeón <small class="text-blue-bright fw-normal ms-1">(Obtenido de la otra tabla)</small></th>
+                        <th>Resultado</th>
+                        <th>KDA (Kills/Deaths/Assists)</th>
+                        <th>Duración</th>
+                        <th>Carril jugado</th>
+                        <th>Notas de análisis</th>
+                        <th>Registrado por</th>
+                        <th>Fecha de registro</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in partidas %}
+                    <tr class="reporte-row {% if p.resultado == 'Victoria' %}row-win{% else %}row-loss{% endif %}">
+                        <!-- Campeón (resuelto) -->
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                {% if p.campeon_icon %}
+                                <img src="{{ p.campeon_icon }}" alt="{{ p.campeon_nombre }}" class="champ-icon">
+                                {% else %}
+                                <div class="champ-icon-empty"><i class="bi bi-person-fill"></i></div>
+                                {% endif %}
+                                <div>
+                                    <div class="champ-name">{{ p.campeon_nombre|default:"Desconocido" }}</div>
+                                    {% if p.campeon_tier %}
+                                    <span class="tier-pill-mini tier-{{ p.campeon_tier|lower }}">{{ p.campeon_tier }}</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </td>
+                        <!-- Resultado -->
+                        <td>
+                            {% if p.resultado == "Victoria" %}
+                            <span class="res-badge res-victoria"><i class="bi bi-trophy-fill me-1"></i>Victoria</span>
+                            {% else %}
+                            <span class="res-badge res-derrota"><i class="bi bi-x-circle-fill me-1"></i>Derrota</span>
+                            {% endif %}
+                        </td>
+                        <!-- KDA -->
+                        <td>
+                            <div class="d-flex flex-column align-items-start gap-1">
+                                <div class="kda-numbers-small">
+                                    <span class="text-green-bright">{{ p.kills }}</span> <span class="text-muted">/</span>
+                                    <span class="text-red-bright">{{ p.deaths }}</span> <span class="text-muted">/</span>
+                                    <span class="text-blue-bright">{{ p.assists }}</span>
+                                </div>
+                                <span class="kda-ratio-badge {% if p.kda >= 3 %}badge-good{% elif p.kda >= 1.5 %}badge-avg{% else %}badge-bad{% endif %}">
+                                    {{ p.kda }} KDA
+                                </span>
+                            </div>
+                        </td>
+                        <!-- Duración -->
+                        <td><span class="mono-text text-light">{{ p.duracion_min }} min</span></td>
+                        <!-- Carril -->
+                        <td><span class="role-pill">{{ p.carril }}</span></td>
+                        <!-- Notas -->
+                        <td><span class="nota-cell" title="{{ p.notas }}">{{ p.notas|default:"Sin notas adicionales."|truncatechars:45 }}</span></td>
+                        <!-- Registrado por -->
+                        <td>
+                            <a href="{% url 'perfil_usuario' p.registrado_por %}" class="user-link text-decoration-none">
+                                <span class="user-pill {% if p.es_admin %}user-admin{% else %}user-normal{% endif %}">
+                                    <i class="bi {% if p.es_admin %}bi-shield-fill-check text-gold{% else %}bi-person-fill{% endif %} me-1"></i>
+                                    {{ p.registrado_por }}
+                                </span>
+                            </a>
+                        </td>
+                        <!-- Fecha -->
+                        <td><span class="fecha-cell">{{ p.fecha }}</span></td>
+                        <!-- Acciones -->
+                        <td class="text-center">
+                            {% if user.username == p.registrado_por or user.is_staff %}
+                            <div class="d-flex gap-1 justify-content-center">
+                                <a href="{% url 'editar_partida' p.id %}" class="btn btn-sm btn-outline-secondary p-1 border-secondary" title="Editar"><i class="bi bi-pencil-square" style="font-size:0.85rem;"></i></a>
+                                <a href="{% url 'eliminar_partida' p.id %}" class="btn btn-sm btn-outline-danger p-1 border-danger" onclick="return confirm('¿Seguro que deseas eliminar el registro de esta partida?');" title="Eliminar"><i class="bi bi-trash" style="font-size:0.85rem;"></i></a>
+                            </div>
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <i class="bi bi-controller text-blue-bright" style="font-size:3.5rem; opacity:0.7;"></i>
+        <h3 class="text-white mt-4 mb-2">Aún no has analizado partidas</h3>
+        <p class="text-light opacity-75">Ve a Gestión de Campeones y presiona el botón del mando de consola para registrar una partida.</p>
+        <a href="{% url 'gestion_campeones' %}" class="action-btn-blue mt-3" style="text-decoration:none;">
+            <i class="bi bi-arrow-left me-2"></i>Ir a Gestión de Campeones
+        </a>
+    </div>
+    {% endif %}
+
+</div>
+
+<style>
+    .admin-badge { display: inline-flex; align-items: center; background: rgba(59,130,246,0.15); border: 1px solid rgba(59,130,246,0.4); color: #93c5fd; font-size: 0.8rem; font-weight: 700; padding: 6px 14px; border-radius: 20px; letter-spacing: 0.5px; }
+    .btn-volver { background: rgba(59,130,246,0.15); border: 1px solid rgba(59,130,246,0.4); color: #93c5fd; width: 45px; height: 45px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; text-decoration: none; transition: all 0.3s; flex-shrink: 0; }
+    .btn-volver:hover { background: #3b82f6; color: white; }
+    .badge-relacion { display: inline-flex; align-items: center; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; }
+    .badge-referenciada { background: rgba(59,130,246,0.2); color: #93c5fd; border: 1px solid rgba(59,130,246,0.4); }
+    .page-title { font-family: 'Cinzel', serif; font-size: 1.8rem; color: #ffffff; letter-spacing: 2px; }
+    .page-subtitle { color: #c8c8d0; font-size: 0.9rem; margin: 4px 0 0; }
+
+    .text-blue-bright { color: #93c5fd !important; }
+    .text-green-bright { color: #6ee7b0 !important; }
+    .text-red-bright { color: #fca5a5 !important; }
+    .text-purple-bright { color: #c4b5fd !important; }
+
+    .nav-report-link { display: inline-flex; align-items: center; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-size: 0.85rem; font-weight: 700; transition: all 0.3s; }
+    .nav-link-gold { background: rgba(200,170,110,0.12); border: 1px solid rgba(200,170,110,0.3); color: #f0d080; }
+    .nav-link-gold:hover { background: #c8aa6e; color: #09090b; }
+
+    .metric-card { background: rgba(24,24,27,0.9); border-radius: 14px; padding: 18px; display: flex; align-items: center; gap: 14px; border: 1px solid rgba(255,255,255,0.07); }
+    .border-blue { border-color: rgba(59,130,246,0.25) !important; }
+    .border-green { border-color: rgba(34,197,94,0.25) !important; }
+    .border-red { border-color: rgba(239,68,68,0.25) !important; }
+    .border-purple { border-color: rgba(168,85,247,0.25) !important; }
+
+    .metric-icon-wrap { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; flex-shrink: 0; }
+    .icon-bg-blue { background: rgba(59,130,246,0.15); }
+    .icon-bg-green { background: rgba(34,197,94,0.15); }
+    .icon-bg-red { background: rgba(239,68,68,0.15); }
+    .icon-bg-purple { background: rgba(168,85,247,0.15); }
+
+    .metric-body { display: flex; flex-direction: column; }
+    .metric-number { font-size: 1.8rem; font-weight: 800; font-family: 'Cinzel', serif; line-height: 1; }
+    .metric-label { color: #a0a0b8; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px; }
+
+    .explain-banner { display: flex; align-items: flex-start; gap: 16px; border-radius: 12px; padding: 18px 22px; }
+    .explain-blue { background: rgba(59,130,246,0.07); border: 1px solid rgba(59,130,246,0.2); }
+    .explain-text { color: #d0d0e0; font-size: 0.88rem; line-height: 1.6; }
+
+    .report-table-card { background: rgba(24,24,27,0.9); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; overflow: hidden; }
+    .reporte-table { --bs-table-bg: transparent; margin: 0; }
+    .reporte-table thead th { background: rgba(0,0,0,0.5); color: #a0a0b8; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.5px; padding: 14px 16px; border-bottom: 1px solid rgba(255,255,255,0.08); border-top: none; white-space: nowrap; }
+    .reporte-table tbody td { padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.05); vertical-align: middle; color: #e0e0f0; }
+    .reporte-row:last-child td { border-bottom: none; }
+
+    .row-win td:first-child { border-left: 3px solid #6ee7b0; }
+    .row-loss td:first-child { border-left: 3px solid #fca5a5; }
+    .reporte-row:hover td { background: rgba(59,130,246,0.04); }
+
+    .champ-icon { width: 38px; height: 38px; border-radius: 50%; border: 2px solid rgba(59,130,246,0.4); }
+    .champ-icon-empty { width: 38px; height: 38px; border-radius: 50%; background: #27272a; display: flex; align-items: center; justify-content: center; color: #a0a0b8; }
+    .champ-name { font-weight: 700; color: #ffffff; font-size: 0.95rem; }
+
+    .tier-pill-mini { display: inline-block; padding: 1px 7px; border-radius: 5px; font-size: 0.7rem; font-weight: 800; }
+    .tier-pill-mini.tier-s { background: #ff8c00; color: #fff; }
+    .tier-pill-mini.tier-a { background: #be3eff; color: #fff; }
+    .tier-pill-mini.tier-b { background: #3e8bff; color: #fff; }
+    .tier-pill-mini.tier-c { background: #3effbf; color: #000; }
+    .tier-pill-mini.tier-d { background: #8c8c8c; color: #fff; }
+
+    .res-badge { display: inline-flex; align-items: center; padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 700; }
+    .res-victoria { background: rgba(34,197,94,0.15); color: #6ee7b0; border: 1px solid rgba(34,197,94,0.3); }
+    .res-derrota { background: rgba(239,68,68,0.15); color: #fca5a5; border: 1px solid rgba(239,68,68,0.3); }
+
+    .kda-numbers-small { font-family: monospace; font-size: 0.9rem; font-weight: 700; }
+    .kda-ratio-badge { font-size: 0.72rem; font-weight: 700; padding: 2px 7px; border-radius: 5px; display: inline-block; }
+    .badge-good { background: rgba(34,197,94,0.15); color: #6ee7b0; }
+    .badge-avg { background: rgba(234,179,8,0.15); color: #fde047; }
+    .badge-bad { background: rgba(239,68,68,0.15); color: #fca5a5; }
+
+    .mono-text { font-family: monospace; font-size: 0.85rem; }
+    .role-pill { background: rgba(59,130,246,0.12); border: 1px solid rgba(59,130,246,0.25); color: #93c5fd; padding: 3px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: 600; }
+    .nota-cell { font-style: italic; color: #b0b0c0; font-size: 0.85rem; }
+    .user-pill { display: inline-flex; align-items: center; border-radius: 20px; padding: 4px 11px; font-size: 0.8rem; transition: all 0.2s; }
+    .user-pill.user-admin { border: 1px solid rgba(200, 170, 110, 0.4); background: rgba(200, 170, 110, 0.08); color: #c8aa6e; }
+    .user-pill.user-normal { border: 1px solid rgba(59, 130, 246, 0.3); background: rgba(59, 130, 246, 0.08); color: #93c5fd; }
+    .user-link:hover .user-pill { transform: scale(1.05); }
+    .text-gold { color: #c8aa6e !important; }
+    .bg-gold { background-color: #c8aa6e !important; }
+    .fecha-cell { font-family: monospace; font-size: 0.78rem; color: #a0a0b8; }
+
+    .empty-state { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 80px 20px; background: rgba(24,24,27,0.7); border: 1px dashed rgba(255,255,255,0.12); border-radius: 16px; }
+    .action-btn-blue { display: inline-flex; align-items: center; background: rgba(59,130,246,0.15); border: 1px solid rgba(59,130,246,0.4); color: #93c5fd; padding: 11px 22px; border-radius: 8px; font-weight: 700; transition: all 0.3s; }
+    .action-btn-blue:hover { background: #3b82f6; color: white; }
+</style>
+{% endblock %}

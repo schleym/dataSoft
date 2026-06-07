@@ -1,0 +1,82 @@
+{
+  "aatrox": {
+    "runas": [
+      {"nombre": "Conqueror", "icono": "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/Conqueror/Conqueror.png"},
+      {"nombre": "Triumph", "icono": "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/Triumph.png"},
+      {"nombre": "Legend: Alacrity", "icono": "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/LegendAlacrity.png"},
+      {"nombre": "Last Stand", "icono": "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/LastStand.png"}
+    ],
+    "builds": [
+      {"nombre": "Eclipse", "icono": "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/item/6692.png"},
+      {"nombre": "Plated Steelcaps", "icono": "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/item/3047.png"},
+      {"nombre": "Sundered Sky", "icono": "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/item/3071.png"},
+      {"nombre": "Sterak's Gage", "icono": "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/item/3053.png"},
+      {"nombre": "Death's Dance", "icono": "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/item/6333.png"},
+      {"nombre": "Guardian Angel", "icono": "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/item/3026.png"}
+    ]
+  },
+  "jinx": {
+    "runas": [
+      {"nombre": "Lethal Tempo", "icono": "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/LethalTempo/LethalTempoTemp.png"},
+      {"nombre": "Presence of Mind", "icono": "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/PresenceOfMind.png"},
+      {"nombre": "Legend: Bloodline", "icono": "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/LegendBloodline.png"},
+      {"nombre": "Cut Down", "icono": "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/CutDown.png"}
+    ],
+    "builds": [
+      {"nombre": "Kraken Slayer", "icono": "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/item/6672.png"},
+      {"nombre": "Berserker's Greaves", "icono": "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/item/3006.png"},
+      {"nombre": "Infinity Edge", "icono": "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/item/3031.png"},
+      {"nombre": "Runaan's Hurricane", "icono": "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/item/3085.png"},
+      {"nombre": "Lord Dominik's Regards", "icono": "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/item/3036.png"},
+      {"nombre": "Bloodthirster", "icono": "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/item/3072.png"}
+    ]
+  },
+  "ahri": {
+    "runas": [
+      {"nombre": "Electrocute", "icono": "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Domination/Electrocute/Electrocute.png"},
+      {"nombre": "Taste of Blood", "icono": "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Domination/TasteOfBlood.png"},
+      {"nombre": "Eyeball Collection", "icono": "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Domination/EyeballCollection.png"},
+      {"nombre": "Ultimate Hunter", "icono": "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Domination/UltimateHunter.png"}
+    ],
+    "builds": [
+      {"nombre": "Luden's Companion", "icono": "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/item/6655.png"},
+      {"nombre": "Sorcerer's Shoes", "icono": "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/item/3020.png"},
+      {"nombre": "Shadowflame", "icono": "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/item/3137.png"},
+      {"nombre": "Zhonya's Hourglass", "icono": "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/item/3157.png"},
+      {"nombre": "Rabadon's Deathcap", "icono": "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/item/3089.png"},
+      {"nombre": "Void Staff", "icono": "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/item/3135.png"}
+    ]
+  },
+  "yasuo": {
+    "runas": [
+      {"nombre": "Lethal Tempo", "icono": "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/LethalTempo/LethalTempoTemp.png"},
+      {"nombre": "Triumph", "icono": "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/Triumph.png"},
+      {"nombre": "Legend: Alacrity", "icono": "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/LegendAlacrity.png"},
+      {"nombre": "Last Stand", "icono": "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/LastStand.png"}
+    ],
+    "builds": [
+      {"nombre": "Kraken Slayer", "icono": "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/item/6672.png"},
+      {"nombre": "Berserker's Greaves", "icono": "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/item/3006.png"},
+      {"nombre": "Infinity Edge", "icono": "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/item/3031.png"},
+      {"nombre": "Shieldbow", "icono": "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/item/6673.png"},
+      {"nombre": "Death's Dance", "icono": "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/item/6333.png"},
+      {"nombre": "Guardian Angel", "icono": "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/item/3026.png"}
+    ]
+  },
+  "lee sin": {
+    "runas": [
+      {"nombre": "Conqueror", "icono": "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/Conqueror/Conqueror.png"},
+      {"nombre": "Triumph", "icono": "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/Triumph.png"},
+      {"nombre": "Legend: Alacrity", "icono": "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/LegendAlacrity.png"},
+      {"nombre": "Coup de Grace", "icono": "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/CoupDeGrace.png"}
+    ],
+    "builds": [
+      {"nombre": "Eclipse", "icono": "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/item/6692.png"},
+      {"nombre": "Plated Steelcaps", "icono": "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/item/3047.png"},
+      {"nombre": "Sundered Sky", "icono": "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/item/3071.png"},
+      {"nombre": "Black Cleaver", "icono": "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/item/3071.png"},
+      {"nombre": "Maw of Malmortius", "icono": "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/item/3156.png"},
+      {"nombre": "Guardian Angel", "icono": "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/item/3026.png"}
+    ]
+  }
+}

@@ -1,0 +1,798 @@
+{% extends 'menu.html' %}
+{% block content %}
+<div class="champion-detail-wrapper">
+    <!-- Hero Background -->
+    <div class="champion-hero" style="background-image: url('{{ p.splash }}');">
+        <div class="hero-overlay-detail"></div>
+        
+        <!-- Botón Volver -->
+        <a href="javascript:history.back()" class="btn-volver-float">
+            <i class="bi bi-arrow-left me-2"></i> VOLVER
+        </a>
+
+        <div class="hero-content-detail container">
+            <div class="row align-items-center">
+                <div class="col-lg-8">
+                    <span class="tier-badge-big tier-{{ p.tier|lower }}">TIER {{ p.tier }}</span>
+                    <h1 class="champion-title">{{ p.nombre }}</h1>
+                    <div class="champion-tags mb-3">
+                        {% for rol in p.roles %}
+                        <span class="tag-pill lane"><i class="bi bi-compass me-1"></i>{{ rol }}</span>
+                        {% endfor %}
+                        {% for clase in p.riot_roles %}
+                        <span class="tag-pill class-riot"><i class="bi bi-shield-shaded me-1"></i>{{ clase }}</span>
+                        {% endfor %}
+                        <span class="tag-pill difficulty">Dificultad: {{ p.dificultad }}</span>
+                    </div>
+                    <p class="text-gold opacity-75 fw-bold"><i class="bi bi-patch-check-fill me-2"></i>Datos actualizados al Parche {{ p.parche }}</p>
+                </div>
+                <div class="col-lg-4 text-center">
+                    <div class="winrate-orb">
+                        <span class="wr-value">{{ p.estadisticas.winrate }}%</span>
+                        <span class="wr-label">Winrate Global</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mt-n5 position-relative z-3 pb-5">
+
+        <!-- ── BARRA DE ACCIONES DEL USUARIO (Favorito + Voto) ─────────────────── -->
+        {% if user.is_authenticated %}
+        <div class="user-actions-bar d-flex align-items-center gap-3 flex-wrap mb-4">
+
+            <!-- Botón Favorito -->
+            <form method="POST" action="{% url 'toggle_favorito' campeon_id %}" class="m-0">
+                {% csrf_token %}
+                <button type="submit" class="btn-fav {% if es_favorito %}fav-active{% endif %}" id="favBtn">
+                    <i class="bi {% if es_favorito %}bi-heart-fill{% else %}bi-heart{% endif %} me-2"></i>
+                    {% if es_favorito %}En Favoritos{% else %}Agregar a Favoritos{% endif %}
+                </button>
+            </form>
+
+            <!-- Panel de Voto de Tier -->
+            <div class="vote-tier-panel d-flex align-items-center gap-2">
+                <span class="vote-label">Tu voto de Tier:</span>
+                {% for t in "SABCD" %}
+                <form method="POST" action="{% url 'votar_tier' campeon_id %}" class="m-0">
+                    {% csrf_token %}
+                    <input type="hidden" name="tier" value="{{ t }}">
+                    <button type="submit" class="btn-vote-tier {% if mi_voto == t %}voted{% endif %} tier-vote-{{ t|lower }}">
+                        {{ t }}
+                    </button>
+                </form>
+                {% endfor %}
+                {% if mi_voto %}
+                <span class="vote-current-badge">Tu voto: <strong class="text-gold">{{ mi_voto }}</strong></span>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- ── TIER COMUNIDAD (visible para todos) ──────────────────────────────── -->
+        {% if total_votos > 0 %}
+        <div class="community-tier-bar mb-4 animate-fade-in">
+            <div class="d-flex align-items-center gap-3 flex-wrap mb-3">
+                <span class="community-label"><i class="bi bi-people-fill me-2 text-gold"></i>Tier Comunidad</span>
+                <span class="badge-tier-community tier-comm-{{ tier_comunidad|lower }}">{{ tier_comunidad }}</span>
+                <span class="text-muted small">basado en {{ total_votos }} voto{{ total_votos|pluralize:"s" }}</span>
+            </div>
+            <!-- Barra de distribución de votos -->
+            <div class="d-flex gap-2 align-items-center flex-wrap">
+                {% for tier_key, count in conteo_votos.items %}
+                {% if count > 0 %}
+                <div class="vote-bar-item">
+                    <span class="vote-bar-tier tier-vote-{{ tier_key|lower }}">{{ tier_key }}</span>
+                    <div class="vote-bar-track">
+                        <div class="vote-bar-fill tier-fill-{{ tier_key|lower }}" style="width: {% widthratio count total_votos 100 %}%"></div>
+                    </div>
+                    <span class="vote-bar-count">{{ count }}</span>
+                </div>
+                {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="row g-4">
+            <!-- Columna Izquierda: Habilidades y Matchups -->
+            <div class="col-lg-8">
+                <!-- Habilidades -->
+                <div class="glass-card-premium p-4 mb-4 shadow-gold">
+                    <h3 class="section-title-premium mb-4"><i class="bi bi-lightning-charge-fill me-2"></i>Habilidades</h3>
+                    <div class="abilities-grid">
+                        {% for h in p.habilidades %}
+                        <div class="ability-item" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ h.descripcion|striptags }}">
+                            <div class="ability-icon-wrapper">
+                                <img src="{{ h.imagen }}" alt="{{ h.nombre }}">
+                                <span class="ability-key">{% if forloop.first %}P{% elif forloop.counter == 2 %}Q{% elif forloop.counter == 3 %}W{% elif forloop.counter == 4 %}E{% else %}R{% endif %}</span>
+                            </div>
+                            <div class="ability-info">
+                                <span class="ability-name">{{ h.nombre }}</span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Build Recomendada -->
+                <div class="glass-card-premium p-4 mb-4">
+                    <h3 class="section-title-premium mb-4"><i class="bi bi-bag-check-fill me-2"></i>Build Core Recomendada</h3>
+                    <div class="build-grid">
+                        {% for item in p.builds %}
+                        <div class="item-card-detail">
+                            <img src="{{ item.icono }}" alt="{{ item.nombre }}">
+                            <span class="item-name">{{ item.nombre }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <!-- Barra de Búsqueda de Contrincantes -->
+                <div class="glass-card-premium p-3 mb-4 d-flex justify-content-between align-items-center flex-wrap gap-3 shadow-gold border-secondary-subtle">
+                    <h4 class="mb-0 text-white d-flex align-items-center" style="font-size: 1.1rem; font-family: 'Cinzel', serif;">
+                        <i class="bi bi-shield-shaded text-gold me-2"></i> Análisis de Enfrentamientos Directos
+                    </h4>
+                    <div class="position-relative">
+                        <input type="text" id="matchups-search" class="form-control form-control-sm bg-dark text-white border-secondary rounded-pill ps-4 pe-3" placeholder="Buscar contrincante..." style="max-width: 200px; font-size: 0.85rem; background-color: rgba(0,0,0,0.4) !important;">
+                        <i class="bi bi-search position-absolute text-muted" style="left: 12px; top: 50%; transform: translateY(-50%); font-size: 0.8rem;"></i>
+
+                    </div>
+                </div>
+
+                <!-- Matchups Detallados -->
+                <div class="row g-4">
+                    <!-- Favorable Matchups -->
+                    <div class="col-md-6">
+                        <div class="glass-card-premium p-4 h-100 border-success-subtle">
+                            <h4 class="text-success mb-4 d-flex align-items-center"><i class="bi bi-emoji-smile-fill me-2"></i>Fuerte contra</h4>
+                            <div class="matchups-list">
+                                {% for m in p.matchup_details.favorables %}
+                                <div class="matchup-card-pro flex-column align-items-stretch p-3 matchup-item" data-name="{{ m.nombre|lower }}">
+                                    <div class="d-flex align-items-center justify-content-between mb-2">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <img src="{{ m.icono }}" alt="{{ m.nombre }}" class="rounded-circle border border-success" style="width: 35px; height: 35px;">
+                                            <span class="m-name fw-bold" style="font-size: 0.95rem;">{{ m.nombre }}</span>
+                                        </div>
+                                        <span class="m-wr font-monospace fw-bold text-success" style="font-size: 0.9rem;">{{ m.wr }}% WR</span>
+                                    </div>
+                                    
+                                    <!-- Barra de Progreso de Winrate -->
+                                    <div class="progress bg-dark" style="height: 5px; border-radius: 10px; overflow: hidden;">
+                                        <div class="progress-bar bg-success" role="progressbar" style="width: {{ m.wr }}%;" aria-valuenow="{{ m.wr }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Unfavorable Matchups -->
+                    <div class="col-md-6">
+                        <div class="glass-card-premium p-4 h-100 border-danger-subtle">
+                            <h4 class="text-danger mb-4 d-flex align-items-center"><i class="bi bi-emoji-frown-fill me-2"></i>Débil contra</h4>
+                            <div class="matchups-list">
+                                {% for m in p.matchup_details.desfavorables %}
+                                <div class="matchup-card-pro flex-column align-items-stretch p-3 matchup-item" data-name="{{ m.nombre|lower }}">
+                                    <div class="d-flex align-items-center justify-content-between mb-2">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <img src="{{ m.icono }}" alt="{{ m.nombre }}" class="rounded-circle border border-danger" style="width: 35px; height: 35px;">
+                                            <span class="m-name fw-bold" style="font-size: 0.95rem;">{{ m.nombre }}</span>
+                                        </div>
+                                        <span class="m-wr font-monospace fw-bold text-danger" style="font-size: 0.9rem;">{{ m.wr }}% WR</span>
+                                    </div>
+                                    
+                                    <!-- Barra de Progreso de Winrate -->
+                                    <div class="progress bg-dark" style="height: 5px; border-radius: 10px; overflow: hidden;">
+                                        <div class="progress-bar bg-danger" role="progressbar" style="width: {{ m.wr }}%;" aria-valuenow="{{ m.wr }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                </div>
+                </div>
+
+
+            </div>
+
+            <!-- Columna Derecha: Estadísticas y Runas -->
+            <div class="col-lg-4">
+                <!-- Estadísticas Base -->
+                <div class="glass-card-premium p-4 mb-4">
+                    <h3 class="section-title-premium mb-4"><i class="bi bi-bar-chart-fill me-2"></i>Estadísticas Base</h3>
+                    <div class="stats-list">
+                        {% for stat in stats_display %}
+                        <div class="stat-row">
+                            <span class="stat-label-detail"><i class="bi {{ stat.icon }} me-2"></i>{{ stat.label }}</span>
+                            <span class="stat-value-detail">{{ stat.value }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Runas Recomendadas -->
+                <div class="glass-card-premium p-4">
+                    <h3 class="section-title-premium mb-4"><i class="bi bi-gem me-2"></i>Runas Principales</h3>
+                    <div class="runes-container">
+                        {% for r in p.runas %}
+                        <div class="rune-item-detail">
+                            <img src="{{ r.icono }}" alt="{{ r.nombre }}">
+                            <span>{{ r.nombre }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── SECCIÓN DE COMENTARIOS PÚBLICOS ──────────────────────────────────── -->
+        <div class="glass-card-premium p-4 mt-4 mb-4" id="comentarios-seccion">
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
+                <h3 class="section-title-premium mb-0">
+                    <i class="bi bi-chat-square-text-fill me-2"></i>
+                    Comentarios de la Comunidad
+                    <span class="badge ms-2" style="background:rgba(200,170,110,0.15);color:#c8aa6e;font-size:0.7rem;font-weight:700;border:1px solid rgba(200,170,110,0.3);">
+                        {{ comentarios_publicos|length }}
+                    </span>
+                </h3>
+                {% if not user.is_authenticated %}
+                <a href="{% url 'login' %}" class="btn btn-sm btn-outline-gold-custom">
+                    <i class="bi bi-box-arrow-in-right me-1"></i>Inicia sesión para comentar
+                </a>
+                {% endif %}
+            </div>
+
+            <!-- Formulario de nuevo comentario (solo logueados) -->
+            {% if user.is_authenticated %}
+            <form method="POST" action="{% url 'comentar_campeon' campeon_id %}" class="mb-4" id="formComentario">
+                {% csrf_token %}
+                <div class="comment-input-wrapper">
+                    <div class="d-flex align-items-start gap-3">
+                        <div class="comment-user-avatar-mini">
+                            <i class="bi bi-person-fill text-gold"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <textarea name="texto" class="form-control comment-textarea" rows="3"
+                                      placeholder="Comparte tu análisis, estrategia o comentario sobre {{ p.nombre }}..."
+                                      maxlength="500" id="commentText"></textarea>
+                            <div class="d-flex justify-content-between align-items-center mt-2">
+                                <span class="text-muted small" id="charCount">0 / 500 caracteres</span>
+                                <div class="d-flex align-items-center gap-2">
+                                    {% if user.is_staff %}
+                                    <span class="badge" style="background:rgba(200,170,110,0.15);border:1px solid rgba(200,170,110,0.4);color:#c8aa6e;font-size:0.65rem;">
+                                        <i class="bi bi-shield-lock-fill me-1"></i>ADMIN
+                                    </span>
+                                    {% endif %}
+                                    <span class="text-muted small">como <strong class="text-white">{{ user.username }}</strong></span>
+                                    <button type="submit" class="btn btn-sm btn-gold-solid px-4">
+                                        <i class="bi bi-send-fill me-1"></i>Publicar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+            {% endif %}
+
+            <!-- Lista de comentarios -->
+            <div class="comments-list d-flex flex-column gap-3">
+                {% for c in comentarios_publicos %}
+                <div class="comment-card {% if c.es_admin %}comment-admin{% endif %}">
+                    <div class="d-flex align-items-start gap-3">
+                        <div class="comment-user-avatar-mini {% if c.es_admin %}comment-avatar-admin{% endif %}">
+                            <i class="bi bi-person-fill {% if c.es_admin %}text-gold{% else %}text-blue-bright{% endif %}"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
+                                <span class="comment-username {% if c.es_admin %}text-gold{% else %}text-white{% endif %} fw-bold">
+                                    {{ c.usuario }}
+                                </span>
+                                {% if c.es_admin %}
+                                <span class="badge" style="background:rgba(200,170,110,0.15);border:1px solid rgba(200,170,110,0.4);color:#c8aa6e;font-size:0.6rem;letter-spacing:0.5px;">
+                                    <i class="bi bi-shield-lock-fill me-1"></i>ADMIN
+                                </span>
+                                {% else %}
+                                <span class="badge" style="background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.3);color:#93c5fd;font-size:0.6rem;">
+                                    <i class="bi bi-controller me-1"></i>JUGADOR
+                                </span>
+                                {% endif %}
+                                <span class="text-muted small ms-auto">{{ c.fecha }}</span>
+                                {% if c.es_propio or user.is_staff %}
+                                <a href="{% url 'eliminar_comentario_publico' c.id %}"
+                                   class="btn btn-sm text-danger border-0 bg-transparent p-0 ms-2"
+                                   style="font-size:0.8rem;"
+                                   onclick="return confirm('¿Eliminar este comentario?');"
+                                   title="Eliminar comentario">
+                                    <i class="bi bi-trash-fill"></i>
+                                </a>
+                                {% endif %}
+                            </div>
+                            <p class="comment-text mb-0">{{ c.texto }}</p>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center py-5">
+                    <i class="bi bi-chat-left text-gold opacity-50" style="font-size:3rem;"></i>
+                    <p class="text-muted mt-3 mb-0">Sé el primero en comentar sobre {{ p.nombre }}.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<style>
+    .champion-hero {
+        height: 500px;
+        background-size: cover;
+        background-position: center 20%;
+        position: relative;
+        display: flex;
+        align-items: flex-end;
+        padding-bottom: 80px;
+    }
+
+    .hero-overlay-detail {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(to top, var(--bg-dark) 0%, rgba(9, 9, 11, 0.4) 50%, transparent 100%);
+    }
+
+    .champion-title {
+        font-family: 'Cinzel', serif;
+        font-size: 5.5rem;
+        font-weight: 900;
+        color: white;
+        text-transform: uppercase;
+        letter-spacing: 6px;
+        margin-bottom: 15px;
+        text-shadow: 2px 2px 0px #000, 4px 4px 15px rgba(0,0,0,0.8), 0 0 50px rgba(200, 170, 110, 0.3);
+        line-height: 0.9;
+    }
+
+    .tag-pill {
+        background: rgba(9, 9, 11, 0.8);
+        padding: 8px 20px;
+        border-radius: 4px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: #f8fafc;
+        border: 1px solid rgba(200, 170, 110, 0.4);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .tag-pill.difficulty { 
+        background: rgba(200, 170, 110, 0.15);
+        color: #c8aa6e; 
+        border-color: #c8aa6e; 
+    }
+
+    .tag-pill.lane {
+        border-color: rgba(59, 130, 246, 0.5);
+        background: rgba(59, 130, 246, 0.1);
+        color: #60a5fa;
+    }
+    
+    .tag-pill.class-riot {
+        border-color: rgba(200, 170, 110, 0.5);
+        background: rgba(200, 170, 110, 0.1);
+        color: #c8aa6e;
+    }
+
+    .hero-content-detail {
+        padding-bottom: 40px;
+    }
+
+    .btn-volver-float {
+        position: absolute;
+        top: 30px;
+        left: 30px;
+        z-index: 10;
+        background: rgba(9, 9, 11, 0.6);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(200, 170, 110, 0.4);
+        color: #c8aa6e;
+        padding: 10px 20px;
+        border-radius: 4px;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 0.8rem;
+        letter-spacing: 1px;
+        transition: all 0.3s ease;
+    }
+
+    .btn-volver-float:hover {
+        background: #c8aa6e;
+        color: #09090b;
+        transform: translateX(-5px);
+    }
+
+    .winrate-orb {
+        width: 150px;
+        height: 150px;
+        background: rgba(200, 170, 110, 0.1);
+        border: 2px solid #c8aa6e;
+        border-radius: 50%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 0 30px rgba(200, 170, 110, 0.2);
+    }
+
+    .wr-value { font-size: 2.2rem; font-weight: 800; font-family: 'Cinzel', serif; color: #c8aa6e; line-height: 1; }
+    .wr-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; color: #a1a1aa; margin-top: 5px; }
+
+    .glass-card-premium {
+        background: rgba(24, 24, 27, 0.7);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 20px;
+    }
+
+    .section-title-premium {
+        font-family: 'Cinzel', serif;
+        font-size: 1.2rem;
+        color: #c8aa6e;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+    }
+
+    .abilities-grid {
+        display: flex;
+        justify-content: space-between;
+        gap: 15px;
+    }
+
+    .ability-item {
+        flex: 1;
+        text-align: center;
+        cursor: help;
+    }
+
+    .ability-icon-wrapper {
+        position: relative;
+        margin-bottom: 10px;
+    }
+
+    .ability-icon-wrapper img {
+        width: 100%;
+        max-width: 64px;
+        border-radius: 12px;
+        border: 2px solid rgba(255, 255, 255, 0.1);
+        transition: all 0.3s ease;
+    }
+
+    .ability-key {
+        position: absolute;
+        bottom: -5px;
+        right: 0;
+        background: #09090b;
+        color: #c8aa6e;
+        border: 1px solid #c8aa6e;
+        width: 22px;
+        height: 22px;
+        border-radius: 4px;
+        font-size: 0.7rem;
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .ability-item:hover img { border-color: #c8aa6e; transform: scale(1.1); }
+    .ability-name { font-size: 0.8rem; color: #a1a1aa; font-weight: 500; display: block; margin-top: 5px; }
+
+    .stat-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .stat-label-detail { color: #a1a1aa; font-size: 0.9rem; }
+    .stat-value-detail { color: white; font-weight: 700; }
+
+    /* Matchups Pro */
+    .matchup-card-pro {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        padding: 12px;
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 12px;
+        margin-bottom: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        transition: all 0.3s ease;
+    }
+
+    .matchup-card-pro:hover {
+        transform: translateX(5px);
+        background: rgba(255, 255, 255, 0.05);
+        border-color: rgba(200, 170, 110, 0.3);
+    }
+
+    .matchup-card-pro img {
+        width: 45px;
+        height: 45px;
+        border-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .matchup-info-pro {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .m-name { font-weight: 700; color: white; font-size: 1rem; }
+    .m-wr { font-size: 0.8rem; font-weight: 600; }
+
+    /* Build Grid */
+    .build-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 15px;
+    }
+
+    .item-card-detail {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        padding: 15px;
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .item-card-detail img {
+        width: 48px;
+        height: 48px;
+        border-radius: 8px;
+        border: 2px solid #333;
+    }
+
+    .item-name {
+        font-size: 0.75rem;
+        text-align: center;
+        color: #a1a1aa;
+        font-weight: 600;
+    }
+
+    .shadow-gold {
+        box-shadow: 0 0 40px rgba(200, 170, 110, 0.05);
+    }
+
+    .rune-item-detail {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        padding: 12px;
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 12px;
+        margin-bottom: 10px;
+    }
+
+    .rune-item-detail img { width: 40px; height: 40px; border-radius: 50%; }
+    .rune-item-detail span { font-weight: 600; color: #f8fafc; }
+
+    .mt-n5 { margin-top: -80px !important; }
+
+    /* ── BARRA DE ACCIONES ─────────────────────────────────────────── */
+    .user-actions-bar {
+        background: rgba(24, 24, 27, 0.6);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255,255,255,0.06);
+        border-radius: 14px;
+        padding: 14px 20px;
+    }
+
+    .btn-fav {
+        display: inline-flex;
+        align-items: center;
+        padding: 9px 20px;
+        border-radius: 10px;
+        border: 1px solid rgba(239,68,68,0.4);
+        background: rgba(239,68,68,0.08);
+        color: #fca5a5;
+        font-weight: 700;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.25s ease;
+    }
+    .btn-fav:hover { background: rgba(239,68,68,0.2); border-color: #ef4444; color: #fecaca; }
+    .btn-fav.fav-active { background: rgba(239,68,68,0.2); border-color: #ef4444; color: #ef4444; }
+
+    .vote-label { color: #a1a1aa; font-size: 0.82rem; font-weight: 600; white-space: nowrap; }
+    .vote-current-badge { color: #a1a1aa; font-size: 0.8rem; padding: 0 6px; }
+
+    .btn-vote-tier {
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+        border: 2px solid transparent;
+        font-weight: 800;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .tier-vote-s { background: rgba(255,140,0,0.1); border-color: rgba(255,140,0,0.3); color: #ff8c00; }
+    .tier-vote-a { background: rgba(190,62,255,0.1); border-color: rgba(190,62,255,0.3); color: #be3eff; }
+    .tier-vote-b { background: rgba(62,139,255,0.1); border-color: rgba(62,139,255,0.3); color: #3e8bff; }
+    .tier-vote-c { background: rgba(62,255,191,0.1); border-color: rgba(62,255,191,0.3); color: #3effbf; }
+    .tier-vote-d { background: rgba(140,140,140,0.1); border-color: rgba(140,140,140,0.3); color: #8c8c8c; }
+
+    .btn-vote-tier:hover { transform: scale(1.15); opacity: 1; }
+    .btn-vote-tier.voted { transform: scale(1.1); box-shadow: 0 0 10px currentColor; opacity: 1; border-width: 2px; }
+    .tier-vote-s.voted { background: rgba(255,140,0,0.25); border-color: #ff8c00; }
+    .tier-vote-a.voted { background: rgba(190,62,255,0.25); border-color: #be3eff; }
+    .tier-vote-b.voted { background: rgba(62,139,255,0.25); border-color: #3e8bff; }
+    .tier-vote-c.voted { background: rgba(62,255,191,0.25); border-color: #3effbf; }
+    .tier-vote-d.voted { background: rgba(140,140,140,0.25); border-color: #8c8c8c; }
+
+    /* ── TIER COMUNIDAD ───────────────────────────────────────────── */
+    .community-tier-bar {
+        background: rgba(24, 24, 27, 0.5);
+        border: 1px solid rgba(200,170,110,0.15);
+        border-radius: 14px;
+        padding: 18px 22px;
+    }
+    .community-label { color: #e4e4e7; font-weight: 700; font-size: 0.9rem; }
+    .badge-tier-community {
+        font-size: 1rem;
+        font-weight: 800;
+        padding: 4px 14px;
+        border-radius: 8px;
+        letter-spacing: 1px;
+    }
+    .tier-comm-s { background: rgba(255,140,0,0.2); color: #ff8c00; border: 1px solid rgba(255,140,0,0.4); }
+    .tier-comm-a { background: rgba(190,62,255,0.2); color: #be3eff; border: 1px solid rgba(190,62,255,0.4); }
+    .tier-comm-b { background: rgba(62,139,255,0.2); color: #3e8bff; border: 1px solid rgba(62,139,255,0.4); }
+    .tier-comm-c { background: rgba(62,255,191,0.2); color: #3effbf; border: 1px solid rgba(62,255,191,0.4); }
+    .tier-comm-d { background: rgba(140,140,140,0.2); color: #8c8c8c; border: 1px solid rgba(140,140,140,0.4); }
+
+    .vote-bar-item { display: flex; align-items: center; gap: 8px; }
+    .vote-bar-tier { font-size: 0.75rem; font-weight: 800; width: 22px; text-align: center; }
+    .vote-bar-track { width: 100px; height: 6px; background: rgba(255,255,255,0.08); border-radius: 10px; overflow: hidden; }
+    .vote-bar-fill { height: 100%; border-radius: 10px; transition: width 0.5s ease; }
+    .vote-bar-count { color: #a1a1aa; font-size: 0.75rem; min-width: 18px; }
+    .tier-fill-s { background: #ff8c00; }
+    .tier-fill-a { background: #be3eff; }
+    .tier-fill-b { background: #3e8bff; }
+    .tier-fill-c { background: #3effbf; }
+    .tier-fill-d { background: #8c8c8c; }
+
+    /* ── COMENTARIOS PÚBLICOS ────────────────────────────────────── */
+    .comment-input-wrapper {
+        background: rgba(0,0,0,0.25);
+        border: 1px solid rgba(255,255,255,0.06);
+        border-radius: 14px;
+        padding: 16px;
+    }
+    .comment-user-avatar-mini {
+        width: 40px;
+        height: 40px;
+        min-width: 40px;
+        border-radius: 50%;
+        background: rgba(200,170,110,0.1);
+        border: 1px solid rgba(200,170,110,0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+    }
+    .comment-avatar-admin {
+        background: rgba(200,170,110,0.15);
+        border-color: rgba(200,170,110,0.5);
+    }
+    .comment-textarea {
+        background: rgba(0,0,0,0.3) !important;
+        border: 1px solid rgba(255,255,255,0.1) !important;
+        color: white !important;
+        border-radius: 10px;
+        resize: vertical;
+        font-size: 0.9rem;
+    }
+    .comment-textarea:focus {
+        border-color: rgba(200,170,110,0.4) !important;
+        box-shadow: 0 0 0 3px rgba(200,170,110,0.08) !important;
+    }
+    .comment-card {
+        background: rgba(24,24,27,0.4);
+        border: 1px solid rgba(255,255,255,0.05);
+        border-radius: 12px;
+        padding: 16px;
+        transition: border-color 0.2s;
+    }
+    .comment-card:hover { border-color: rgba(255,255,255,0.1); }
+    .comment-card.comment-admin {
+        border-color: rgba(200,170,110,0.2);
+        background: rgba(200,170,110,0.04);
+    }
+    .comment-text { color: #d4d4d8; font-size: 0.9rem; line-height: 1.55; }
+    .comment-username { font-size: 0.92rem; }
+    .btn-outline-gold-custom {
+        border: 1px solid rgba(200,170,110,0.4);
+        color: #c8aa6e;
+        background: transparent;
+        border-radius: 8px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+    .btn-outline-gold-custom:hover {
+        background: rgba(200,170,110,0.1);
+        color: #c8aa6e;
+    }
+    .btn-gold-solid {
+        background: linear-gradient(135deg, #c8aa6e, #9e8248);
+        border: none;
+        color: #000;
+        font-weight: 700;
+        border-radius: 8px;
+        transition: all 0.3s;
+    }
+    .btn-gold-solid:hover {
+        background: #c8aa6e;
+        transform: translateY(-1px);
+        box-shadow: 0 0 12px rgba(200,170,110,0.3);
+    }
+    .text-blue-bright { color: #60a5fa !important; }
+
+
+    @media (max-width: 992px) {
+        .champion-title { font-size: 3rem; }
+        .abilities-grid { flex-wrap: wrap; }
+        .ability-item { flex: 0 0 30%; margin-bottom: 20px; }
+        .mt-n5 { margin-top: -40px !important; }
+    }
+</style>
+
+<script>
+    // Inicializar tooltips de Bootstrap
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+      return new bootstrap.Tooltip(tooltipTriggerEl)
+    })
+
+    // Filtro de búsqueda para matchups directos
+    const searchInput = document.getElementById('matchups-search');
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            const query = this.value.toLowerCase().trim();
+            const items = document.querySelectorAll('.matchup-item');
+            
+            items.forEach(item => {
+                const name = item.getAttribute('data-name');
+                if (name.includes(query)) {
+                    item.style.setProperty('display', 'flex', 'important');
+                } else {
+                    item.style.setProperty('display', 'none', 'important');
+                }
+            });
+        });
+    }
+
+    // Contador de caracteres para textarea de comentario
+    const commentText = document.getElementById('commentText');
+    const charCount = document.getElementById('charCount');
+    if (commentText && charCount) {
+        commentText.addEventListener('input', function() {
+            const len = this.value.length;
+            charCount.textContent = `${len} / 500 caracteres`;
+            charCount.style.color = len > 450 ? '#ef4444' : len > 400 ? '#f59e0b' : '#71717a';
+        });
+    }
+
+</script>
+{% endblock %}

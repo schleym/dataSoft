@@ -1,0 +1,205 @@
+{% extends 'menu.html' %}
+{% block content %}
+<section class="seccion-premium">
+    <div class="text-center mb-5">
+        <h1 class="tituloPrincipal">Revisor de Champion Pool</h1>
+        <p class="parrafoBanner">Analiza tu conjunto de campeones para asegurar un equilibrio perfecto entre AD, AP e Iniciación.</p>
+    </div>
+
+    <div class="row g-4">
+        <!-- Selección de Campeones -->
+        <div class="col-lg-8">
+            <div class="glass-card p-4">
+                <h3 class="mb-4"><i class="bi bi-plus-circle me-2"></i>Selecciona tus Campeones</h3>
+                <form id="pool-form" method="GET">
+                    <div class="search-box mb-4">
+                        <input type="text" id="champ-filter" class="form-control bg-dark text-white border-secondary" placeholder="Filtrar por nombre...">
+                    </div>
+                    
+                    <div class="champions-selector-grid">
+                        {% for champ in personajes %}
+                        <div class="champ-select-card" data-name="{{ champ.nombre|lower }}">
+                            <input type="checkbox" name="champions" value="{{ champ.id }}" id="champ-{{ champ.id }}" 
+                                   {% if champ.id in selected_ids %}checked{% endif %}>
+                            <label for="champ-{{ champ.id }}">
+                                <img src="{{ champ.icon }}" alt="{{ champ.nombre }}">
+                                <span>{{ champ.nombre }}</span>
+                            </label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="mt-4 text-end">
+                        <button type="submit" class="btn-explorar">Analizar Pool <i class="bi bi-cpu ms-2"></i></button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Resultados del Análisis -->
+        <div class="col-lg-4">
+            <div class="sticky-top" style="top: 100px;">
+                <div class="glass-card p-4 result-card">
+                    <h3 class="mb-4 text-center">Resultado del Análisis</h3>
+                    
+                    {% if analysis %}
+                        <div class="analysis-stats">
+                            <div class="mb-4">
+                                <label class="d-flex justify-content-between mb-2">
+                                    <span>Daño Físico (AD)</span>
+                                    <span>{{ analysis.ad_count }} Champs</span>
+                                </label>
+                                <div class="progress bg-dark" style="height: 10px;">
+                                    <div class="progress-bar bg-danger" style="width: {{ analysis.ad_perc }}%"></div>
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="d-flex justify-content-between mb-2">
+                                    <span>Daño Mágico (AP)</span>
+                                    <span>{{ analysis.ap_count }} Champs</span>
+                                </label>
+                                <div class="progress bg-dark" style="height: 10px;">
+                                    <div class="progress-bar bg-info" style="width: {{ analysis.ap_perc }}%"></div>
+                                </div>
+                            </div>
+
+                            <hr class="border-secondary my-4">
+
+                            <div class="check-item {% if analysis.has_initiator %}text-success{% else %}text-danger{% endif %} mb-3">
+                                <i class="bi {% if analysis.has_initiator %}bi-check-circle-fill{% else %}bi-x-circle-fill{% endif %} me-2"></i>
+                                Iniciación: {% if analysis.has_initiator %}Presente{% else %}Faltante{% endif %}
+                            </div>
+
+                            <div class="check-item {% if analysis.has_tank %}text-success{% else %}text-danger{% endif %} mb-3">
+                                <i class="bi {% if analysis.has_tank %}bi-check-circle-fill{% else %}bi-x-circle-fill{% endif %} me-2"></i>
+                                Tanque/Frontline: {% if analysis.has_tank %}Presente{% else %}Faltante{% endif %}
+                            </div>
+
+                            <div class="alert mt-4 {% if analysis.ad_perc > 70 or analysis.ap_perc > 70 %}alert-warning{% else %}alert-success{% endif %} bg-opacity-10 border-0">
+                                <i class="bi bi-info-circle-fill me-2"></i>
+                                {% if analysis.ad_perc > 70 %}
+                                    Tu pool es demasiado pesado en AD. Los tanques enemigos te counterearán fácilmente.
+                                {% elif analysis.ap_perc > 70 %}
+                                    Tu pool es demasiado pesado en AP. La resistencia mágica será un problema.
+                                {% elif not analysis.has_initiator %}
+                                    Te falta iniciación. Tendrás dificultades para forzar peleas.
+                                {% else %}
+                                    Pool equilibrado. Tienes herramientas para adaptarte a cualquier partida.
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="bi bi-clipboard2-pulse text-muted" style="font-size: 3rem;"></i>
+                            <p class="text-muted mt-3">Selecciona al menos un campeón para ver el análisis de tu pool.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+    .glass-card {
+        background: rgba(24, 24, 27, 0.6);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 20px;
+    }
+
+    .champions-selector-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+        gap: 15px;
+        max-height: 500px;
+        overflow-y: auto;
+        padding-right: 10px;
+    }
+
+    /* Scrollbar personalizada */
+    .champions-selector-grid::-webkit-scrollbar {
+        width: 5px;
+    }
+    .champions-selector-grid::-webkit-scrollbar-thumb {
+        background: #c8aa6e;
+        border-radius: 5px;
+    }
+
+    .champ-select-card {
+        position: relative;
+    }
+
+    .champ-select-card input {
+        display: none;
+    }
+
+    .champ-select-card label {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        padding: 10px;
+        border-radius: 12px;
+        transition: all 0.3s ease;
+        border: 1px solid transparent;
+    }
+
+    .champ-select-card label img {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        border: 2px solid transparent;
+        transition: all 0.3s ease;
+    }
+
+    .champ-select-card label span {
+        font-size: 0.8rem;
+        color: #a1a1aa;
+        text-align: center;
+    }
+
+    .champ-select-card input:checked + label {
+        background: rgba(200, 170, 110, 0.1);
+        border-color: #c8aa6e;
+    }
+
+    .champ-select-card input:checked + label img {
+        border-color: #c8aa6e;
+        transform: scale(1.1);
+    }
+
+    .champ-select-card input:checked + label span {
+        color: #c8aa6e;
+        font-weight: 700;
+    }
+
+    .check-item {
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+    }
+
+    .result-card {
+        border-left: 4px solid #c8aa6e;
+    }
+</style>
+
+<script>
+    document.getElementById('champ-filter').addEventListener('input', function(e) {
+        const filter = e.target.value.toLowerCase();
+        const cards = document.querySelectorAll('.champ-select-card');
+        
+        cards.forEach(card => {
+            const name = card.getAttribute('data-name');
+            if (name.includes(filter)) {
+                card.style.display = 'block';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    });
+</script>
+{% endblock %}

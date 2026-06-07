@@ -1,0 +1,709 @@
+{% extends 'menu.html' %}
+{% block content %}
+
+<!-- Cabecera de la Tier List -->
+<section class="hero-premium-mini">
+    <div class="hero-overlay"></div>
+    <div class="containerPrincipal py-4">
+        <div class="contenido-header text-center">
+            <div class="hero-badge animate-fade-in">
+                <i class="bi bi-trophy-fill text-gold me-2"></i> DATA-DRIVEN META REPORT
+            </div>
+            <h1 class="tituloPrincipal display-4">Tier List de Campeones</h1>
+            <p class="parrafoBanner">Clasificación de poder de campeones en el servidor de LAS basada en estadísticas en tiempo real y tasas de victoria.</p>
+        </div>
+    </div>
+</section>
+
+<!-- Panel de Control y Filtros -->
+<div class="container my-4 px-3">
+    <div class="dashboard-controls d-flex flex-wrap align-items-center justify-content-between p-3 gap-3">
+        <!-- Filtros de Rol / Línea -->
+        <div class="d-flex flex-wrap gap-2 role-filters" id="roleFilterGroup">
+            <button class="btn btn-filter active" data-role="all">
+                <i class="bi bi-grid-fill me-1"></i> Todos
+            </button>
+            <button class="btn btn-filter" data-role="top">
+                <i class="bi bi-shield-shaded me-1"></i> TOP
+            </button>
+            <button class="btn btn-filter" data-role="jungle">
+                <i class="bi bi-tree-fill me-1"></i> JUNGLE
+            </button>
+            <button class="btn btn-filter" data-role="mid">
+                <i class="bi bi-lightning-fill me-1"></i> MID
+            </button>
+            <button class="btn btn-filter" data-role="adc">
+                <i class="bi bi-bullseye me-1"></i> ADC
+            </button>
+            <button class="btn btn-filter" data-role="support">
+                <i class="bi bi-heart-fill me-1"></i> SUPPORT
+            </button>
+        </div>
+
+        <!-- Buscador Interno & Toggle de Vista -->
+        <div class="d-flex align-items-center flex-wrap gap-3 ms-auto search-and-layout">
+            <!-- Barra de Búsqueda -->
+            <div class="input-wrapper-mini">
+                <i class="bi bi-search search-icon-mini"></i>
+                <input type="text" id="champSearchInput" placeholder="Buscar campeón..." class="form-control text-white bg-transparent border-0 ps-5" style="box-shadow: none;">
+            </div>
+
+            <!-- Toggle de Layout -->
+            <div class="layout-toggle-group p-1 d-flex rounded" style="background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255,255,255,0.05);">
+                <button class="btn btn-sm btn-layout" id="btnLayoutTable" title="Vista de Tabla">
+                    <i class="bi bi-table"></i>
+                </button>
+                <button class="btn btn-sm btn-layout active" id="btnLayoutGrid" title="Vista Tradicional">
+                    <i class="bi bi-grid-3x3-gap-fill"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenedor Principal de la Tier List -->
+    <div id="tierListContent" class="mt-4">
+        
+        <!-- VISTA 1: TABLA AVANZADA DE ESTADÍSTICAS (Por Defecto) -->
+        <div id="tableViewSection" class="animate-fade-in d-none">
+            <div class="table-responsive premium-table-card">
+                <table class="table table-dark table-hover align-middle mb-0" id="tierListTable">
+                    <thead>
+                        <tr class="text-secondary border-bottom border-secondary-subtle">
+                            <th scope="col" class="text-center py-3" style="width: 60px;">#</th>
+                            <th scope="col" class="py-3">Campeón</th>
+                            <th scope="col" class="text-center py-3">Tier</th>
+                            <th scope="col" class="py-3" style="width: 180px;">Win Rate</th>
+                            <th scope="col" class="text-center py-3">Pick Rate</th>
+                            <th scope="col" class="text-center py-3">Ban Rate</th>
+                            <th scope="col" class="py-3 text-center">Items Recomendados</th>
+                            <th scope="col" class="py-3 text-center" style="min-width: 160px;">Counters Fuertes / Débiles</th>
+                            <th scope="col" class="text-center py-3">Ficha</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in personajes %}
+                        <tr class="tier-table-row border-bottom border-light-subtle" 
+                            data-name="{{ p.nombre|lower }}"
+                            data-roles="{{ p.roles|join:','|lower }}"
+                            data-tier="{{ p.tier }}">
+                            
+                            <!-- 1. Posición / Rank -->
+                            <td class="text-center fw-bold text-gold py-3 fs-5 position-cell">
+                                {{ p.posicion }}
+                            </td>
+                            
+                            <!-- 2. Perfil del Campeón -->
+                            <td class="py-3">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="avatar-wrapper position-relative">
+                                        <img src="{{ p.icon }}" alt="{{ p.nombre }}" class="champ-table-avatar rounded-circle border border-2 border-tier border-tier-{{ p.tier|slugify }}">
+                                        <span class="badge-mini-tier bg-tier-{{ p.tier|slugify }}">{{ p.tier }}</span>
+                                    </div>
+                                    <div class="d-flex flex-col gap-0.5">
+                                        <span class="fw-bold text-white fs-5 champion-clickable" onclick="window.location='{% url 'campeon_detalle' p.id %}'" style="cursor:pointer;">{{ p.nombre }}</span>
+                                        <div class="d-flex gap-1 flex-wrap mt-1">
+                                            {% for role in p.roles %}
+                                            <span class="badge badge-role-tag">{{ role }}</span>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                            
+                            <!-- 3. Tier Badge -->
+                            <td class="text-center py-3">
+                                <span class="badge-tier-pill tier-pill-{{ p.tier|slugify }}">{{ p.tier }}</span>
+                            </td>
+                            
+                            <!-- 4. Win Rate con Mini Barra -->
+                            <td class="py-3">
+                                <div class="d-flex flex-col">
+                                    <span class="fw-bold fs-6 text-white">{{ p.estadisticas.winrate }}%</span>
+                                    <div class="progress mt-1.5" style="height: 6px; background: rgba(255,255,255,0.05); border-radius: 4px; overflow: hidden;">
+                                        <div class="progress-bar bg-gold" style="width: {{ p.estadisticas.winrate }}%;"></div>
+                                    </div>
+                                </div>
+                            </td>
+                            
+                            <!-- 5. Pick Rate -->
+                            <td class="text-center py-3 fw-semibold text-light">
+                                {{ p.pickrate }}%
+                            </td>
+                            
+                            <!-- 6. Ban Rate -->
+                            <td class="text-center py-3 fw-semibold text-danger-subtle">
+                                {{ p.banrate }}%
+                            </td>
+                            
+                            <!-- 7. Build Recomendada -->
+                            <td class="py-3 text-center">
+                                <div class="d-flex justify-content-center gap-1.5 flex-wrap">
+                                    {% for item in p.items_recomendados %}
+                                    <div class="item-icon-wrapper" data-bs-toggle="tooltip" title="{{ item.nombre }}">
+                                        <img src="{{ item.icono }}" alt="{{ item.nombre }}" class="item-table-icon rounded border border-secondary-subtle">
+                                    </div>
+                                    {% empty %}
+                                    <span class="text-muted small">Sin items</span>
+                                    {% endfor %}
+                                </div>
+                            </td>
+                            
+                            <!-- 8. Counters Directos -->
+                            <td class="py-3">
+                                <div class="d-flex align-items-center justify-content-center gap-3">
+                                    <!-- Fuertes contra -->
+                                    <div class="d-flex flex-col align-items-center gap-1">
+                                        <span class="text-muted" style="font-size: 0.65rem; font-weight: bold; letter-spacing: 0.5px;">FUERTE VS</span>
+                                        <div class="d-flex gap-1">
+                                            {% for c in p.counters_favorables %}
+                                            <img src="{{ c.icono }}" alt="{{ c.nombre }}" class="counter-mini-avatar rounded-circle border border-success border-1" data-bs-toggle="tooltip" data-bs-html="true" title="<b>Favorable vs {{ c.nombre }}</b><br><span class='text-success'>{{ c.wr }}% WR</span><br><small class='text-muted'>{{ c.consejo }}</small>">
+                                            {% empty %}
+                                            <span class="text-muted small">-</span>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="vertical-divider bg-secondary-subtle opacity-20" style="width: 1px; height: 35px;"></div>
+                                    
+                                    <!-- Débiles contra -->
+                                    <div class="d-flex flex-col align-items-center gap-1">
+                                        <span class="text-muted" style="font-size: 0.65rem; font-weight: bold; letter-spacing: 0.5px;">DÉBIL VS</span>
+                                        <div class="d-flex gap-1">
+                                            {% for c in p.counters_desfavorables %}
+                                            <img src="{{ c.icono }}" alt="{{ c.nombre }}" class="counter-mini-avatar rounded-circle border border-danger border-1" data-bs-toggle="tooltip" data-bs-html="true" title="<b>Débil vs {{ c.nombre }}</b><br><span class='text-danger'>{{ c.wr }}% WR</span><br><small class='text-muted'>{{ c.consejo }}</small>">
+                                            {% empty %}
+                                            <span class="text-muted small">-</span>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                            
+                            <!-- 9. Ficha de Detalles -->
+                            <td class="text-center py-3">
+                                <a href="{% url 'campeon_detalle' p.id %}" class="btn btn-sm btn-icon-gold rounded-circle" title="Ver análisis estratégico de {{ p.nombre }}">
+                                    <i class="bi bi-chevron-right"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="9" class="text-center py-5 text-muted">
+                                <i class="bi bi-hourglass-split display-4 mb-3 d-block text-gold"></i>
+                                No se encontraron campeones registrados. ¡Crea campeones en el panel de administración o búscalos para importarlos automáticamente!
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- VISTA 2: TRADICIONAL POR FILAS COLOREADAS (Oculto por defecto) -->
+        <div id="gridViewSection" class="animate-fade-in">
+            <div class="tier-container d-flex flex-column gap-3">
+                {% for tier_name, champions in tiers.items %}
+                <div class="tier-row d-flex border rounded-4 overflow-hidden" id="tierRow-{{ tier_name }}" data-tier="{{ tier_name }}">
+                    <!-- Etiqueta del Tier -->
+                    <div class="tier-label-capsule d-flex align-items-center justify-content-center bg-tier-{{ tier_name|slugify }}">
+                        {{ tier_name }}
+                    </div>
+                    
+                    <!-- Campeones del Tier -->
+                    <div class="tier-champions-grid d-flex flex-wrap p-3 gap-3 align-items-center flex-grow-1 bg-dark-glass">
+                        {% for champ in champions %}
+                        <div class="champ-grid-card position-relative text-center" 
+                             data-name="{{ champ.nombre|lower }}"
+                             data-roles="{{ champ.roles|join:','|lower }}"
+                             title="{{ champ.nombre }}"
+                             onclick="window.location='{% url 'campeon_detalle' champ.id %}'">
+                            
+                            <img src="{{ champ.icon }}" alt="{{ champ.nombre }}" class="champ-grid-avatar rounded border border-2 border-tier-{{ tier_name|slugify }}">
+                            <div class="champ-grid-name-overlay">{{ champ.nombre }}</div>
+                        </div>
+                        {% empty %}
+                        <span class="text-muted ms-2 small"><i class="bi bi-info-circle me-1"></i>Sin campeones asignados a este tier.</span>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+    </div>
+</div>
+
+<!-- Estilos Específicos Premium de la Sección -->
+<style>
+    /* Estilos del Banner Mini */
+    .hero-premium-mini {
+        position: relative;
+        background: linear-gradient(135deg, #0b0b0f 0%, #151520 100%);
+        border-bottom: 1px solid rgba(200, 170, 110, 0.2);
+        overflow: hidden;
+    }
+    
+    .hero-premium-mini .containerPrincipal {
+        position: relative;
+        z-index: 2;
+    }
+    
+    /* Controles del Tablero */
+    .dashboard-controls {
+        background: rgba(20, 20, 26, 0.6);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 16px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+    
+    /* Botones de Filtro */
+    .btn-filter {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        color: rgba(255,255,255,0.7);
+        font-weight: 600;
+        font-size: 0.85rem;
+        padding: 8px 16px;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-filter:hover {
+        background: rgba(200, 170, 110, 0.1);
+        border-color: rgba(200, 170, 110, 0.4);
+        color: #fff;
+    }
+    
+    .btn-filter.active {
+        background: radial-gradient(circle, rgba(200, 170, 110, 0.25) 0%, rgba(200, 170, 110, 0.08) 100%);
+        border-color: #c8aa6e;
+        color: #f0e6d2;
+        box-shadow: 0 0 15px rgba(200, 170, 110, 0.15);
+    }
+    
+    /* Buscador Mini */
+    .input-wrapper-mini {
+        position: relative;
+        background: rgba(0, 0, 0, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 8px;
+        width: 240px;
+        transition: all 0.3s ease;
+    }
+    
+    .input-wrapper-mini:focus-within {
+        border-color: #c8aa6e;
+        box-shadow: 0 0 15px rgba(200, 170, 110, 0.2);
+    }
+    
+    .search-icon-mini {
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: rgba(255, 255, 255, 0.4);
+        pointer-events: none;
+    }
+    
+    /* Toggle de Layout */
+    .btn-layout {
+        color: rgba(255,255,255,0.4);
+        border: none;
+        padding: 6px 12px;
+        transition: all 0.3s;
+    }
+    
+    .btn-layout:hover {
+        color: rgba(255,255,255,0.8);
+    }
+    
+    .btn-layout.active {
+        background: rgba(200, 170, 110, 0.2) !important;
+        color: #f0e6d2 !important;
+        border: 1px solid rgba(200, 170, 110, 0.3);
+    }
+    
+    /* Premium Table */
+    .premium-table-card {
+        background: rgba(20, 20, 26, 0.4);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+    }
+    
+    .premium-table-card table {
+        background: transparent !important;
+    }
+    
+    .premium-table-card thead th {
+        background: rgba(10, 10, 14, 0.5) !important;
+        font-family: 'Outfit', sans-serif;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        border-bottom: 2px solid rgba(255, 255, 255, 0.05);
+    }
+    
+    .tier-table-row {
+        background: transparent !important;
+        transition: all 0.25s ease;
+    }
+    
+    .tier-table-row:hover {
+        background: rgba(200, 170, 110, 0.04) !important;
+    }
+    
+    /* Avatar e Iconos */
+    .champ-table-avatar {
+        width: 48px;
+        height: 48px;
+        object-fit: cover;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    }
+    
+    .badge-mini-tier {
+        position: absolute;
+        bottom: -4px;
+        right: -4px;
+        font-size: 0.65rem;
+        font-weight: 800;
+        padding: 2px 6px;
+        border-radius: 4px;
+        color: #000;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+    }
+    
+    .badge-role-tag {
+        font-size: 0.65rem;
+        font-weight: 600;
+        color: rgba(255,255,255,0.6);
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        padding: 3px 8px;
+        border-radius: 4px;
+    }
+    
+    /* Bordes dinámicos de los Avatares por Tier */
+    .border-tier-s-plus { border-color: #ff3e3e !important; box-shadow: 0 0 10px rgba(255, 62, 62, 0.4); }
+    .border-tier-s { border-color: #ff8c00 !important; box-shadow: 0 0 10px rgba(255, 140, 0, 0.4); }
+    .border-tier-a { border-color: #be3eff !important; box-shadow: 0 0 10px rgba(190, 62, 255, 0.4); }
+    .border-tier-b { border-color: #3e8bff !important; box-shadow: 0 0 10px rgba(62, 139, 255, 0.4); }
+    .border-tier-c { border-color: #3effbf !important; box-shadow: 0 0 10px rgba(62, 255, 191, 0.3); }
+    .border-tier-d { border-color: #8c8c8c !important; }
+    .border-tier-f { border-color: #4b4b4b !important; }
+    
+    /* Fondo dinámico para badge mini de Tier */
+    .bg-tier-s-plus { background: #ff3e3e; }
+    .bg-tier-s { background: #ff8c00; }
+    .bg-tier-a { background: #be3eff; color: #fff; }
+    .bg-tier-b { background: #3e8bff; color: #fff; }
+    .bg-tier-c { background: #3effbf; }
+    .bg-tier-d { background: #8c8c8c; }
+    .bg-tier-f { background: #4b4b4b; color: #fff; }
+    
+    /* Píldoras de Tier Premium */
+    .badge-tier-pill {
+        font-family: 'Cinzel', serif;
+        font-size: 1.1rem;
+        font-weight: 800;
+        padding: 4px 14px;
+        border-radius: 20px;
+        display: inline-block;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+        border: 1px solid rgba(255,255,255,0.05);
+    }
+    
+    .tier-pill-s-plus {
+        background: linear-gradient(135deg, rgba(255, 62, 62, 0.3) 0%, rgba(255, 62, 62, 0.05) 100%);
+        border-color: #ff3e3e;
+        color: #ff6b6b;
+        text-shadow: 0 0 8px rgba(255, 62, 62, 0.5);
+    }
+    .tier-pill-s {
+        background: linear-gradient(135deg, rgba(255, 140, 0, 0.3) 0%, rgba(255, 140, 0, 0.05) 100%);
+        border-color: #ff8c00;
+        color: #ffa53d;
+        text-shadow: 0 0 8px rgba(255, 140, 0, 0.5);
+    }
+    .tier-pill-a {
+        background: linear-gradient(135deg, rgba(190, 62, 255, 0.3) 0%, rgba(190, 62, 255, 0.05) 100%);
+        border-color: #be3eff;
+        color: #d680ff;
+        text-shadow: 0 0 8px rgba(190, 62, 255, 0.5);
+    }
+    .tier-pill-b {
+        background: linear-gradient(135deg, rgba(62, 139, 255, 0.3) 0%, rgba(62, 139, 255, 0.05) 100%);
+        border-color: #3e8bff;
+        color: #7ab3ff;
+        text-shadow: 0 0 8px rgba(62, 139, 255, 0.5);
+    }
+    .tier-pill-c {
+        background: linear-gradient(135deg, rgba(62, 255, 191, 0.3) 0%, rgba(62, 255, 191, 0.05) 100%);
+        border-color: #3effbf;
+        color: #7affd2;
+        text-shadow: 0 0 8px rgba(62, 255, 191, 0.5);
+    }
+    .tier-pill-d {
+        background: linear-gradient(135deg, rgba(140, 140, 140, 0.3) 0%, rgba(140, 140, 140, 0.05) 100%);
+        border-color: #8c8c8c;
+        color: #b5b5b5;
+    }
+    .tier-pill-f {
+        background: linear-gradient(135deg, rgba(75, 75, 75, 0.3) 0%, rgba(75, 75, 75, 0.05) 100%);
+        border-color: #4b4b4b;
+        color: #7b7b7b;
+    }
+    
+    /* Items Icons */
+    .item-table-icon {
+        width: 32px;
+        height: 32px;
+        object-fit: cover;
+        transition: transform 0.2s;
+    }
+    
+    .item-icon-wrapper:hover .item-table-icon {
+        transform: scale(1.18);
+        border-color: #c8aa6e !important;
+        box-shadow: 0 0 10px rgba(200,170,110,0.5);
+        z-index: 5;
+    }
+    
+    /* Mini Counters */
+    .counter-mini-avatar {
+        width: 28px;
+        height: 28px;
+        object-fit: cover;
+        cursor: pointer;
+        transition: transform 0.25s, box-shadow 0.25s;
+    }
+    
+    .counter-mini-avatar:hover {
+        transform: scale(1.22);
+        z-index: 5;
+        box-shadow: 0 0 12px currentColor;
+    }
+    
+    /* Botones de acción redondos */
+    .btn-icon-gold {
+        background: rgba(200, 170, 110, 0.08);
+        border: 1px solid rgba(200, 170, 110, 0.25);
+        color: #c8aa6e;
+        width: 34px;
+        height: 34px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-icon-gold:hover {
+        background: #c8aa6e;
+        color: #000;
+        box-shadow: 0 0 15px rgba(200, 170, 110, 0.4);
+    }
+    
+    /* --- VISTA TRADICIONAL --- */
+    .tier-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+    
+    .tier-row {
+        background: rgba(20, 20, 26, 0.45);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.05) !important;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.25);
+        transition: transform 0.3s, border-color 0.3s;
+    }
+    
+    .tier-row:hover {
+        transform: translateX(4px);
+        border-color: rgba(200, 170, 110, 0.25) !important;
+    }
+    
+    .tier-label-capsule {
+        width: 110px;
+        font-family: 'Cinzel', serif;
+        font-size: 2.2rem;
+        font-weight: 900;
+        color: #000 !important;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        box-shadow: 5px 0 15px rgba(0,0,0,0.3);
+        flex-shrink: 0;
+    }
+    
+    .champ-grid-card {
+        width: 66px;
+        height: 66px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .champ-grid-avatar {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+    }
+    
+    .champ-grid-card:hover {
+        transform: scale(1.16);
+        z-index: 10;
+    }
+    
+    .champ-grid-card:hover .champ-grid-avatar {
+        box-shadow: 0 0 15px rgba(200, 170, 110, 0.4);
+    }
+    
+    .champ-grid-name-overlay {
+        position: absolute;
+        bottom: -22px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 0.65rem;
+        font-weight: 700;
+        color: #e0d8c8;
+        white-space: nowrap;
+        background: rgba(10, 10, 14, 0.95);
+        border: 1px solid rgba(200,170,110,0.3);
+        padding: 2px 6px;
+        border-radius: 4px;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.25s, bottom 0.25s;
+        box-shadow: 0 3px 8px rgba(0,0,0,0.5);
+    }
+    
+    .champ-grid-card:hover .champ-grid-name-overlay {
+        opacity: 1;
+        bottom: -18px;
+    }
+</style>
+
+<!-- Script Dinámico Premium (Filtro, Búsqueda, Dual-Layout) -->
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        
+        // 1. Activar Tooltips de Bootstrap
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+
+        // Elementos del DOM
+        const roleFilters = document.querySelectorAll("#roleFilterGroup .btn-filter");
+        const searchInput = document.getElementById("champSearchInput");
+        const btnLayoutTable = document.getElementById("btnLayoutTable");
+        const btnLayoutGrid = document.getElementById("btnLayoutGrid");
+        const tableViewSection = document.getElementById("tableViewSection");
+        const gridViewSection = document.getElementById("gridViewSection");
+        
+        // Estado de filtros
+        let currentRole = "all";
+        let searchQuery = "";
+        let currentLayout = "grid"; // table | grid
+
+        // 2. Control de Layouts (Dual View)
+        btnLayoutTable.addEventListener("click", function() {
+            if (currentLayout !== "table") {
+                currentLayout = "table";
+                btnLayoutTable.classList.add("active");
+                btnLayoutGrid.classList.remove("active");
+                tableViewSection.classList.remove("d-none");
+                gridViewSection.classList.add("d-none");
+                filterItems();
+            }
+        });
+
+        btnLayoutGrid.addEventListener("click", function() {
+            if (currentLayout !== "grid") {
+                currentLayout = "grid";
+                btnLayoutGrid.classList.add("active");
+                btnLayoutTable.classList.remove("active");
+                gridViewSection.classList.remove("d-none");
+                tableViewSection.classList.add("d-none");
+                filterItems();
+            }
+        });
+
+        // 3. Selección de Rol
+        roleFilters.forEach(button => {
+            button.addEventListener("click", function() {
+                roleFilters.forEach(btn => btn.classList.remove("active"));
+                button.classList.add("active");
+                currentRole = button.getAttribute("data-role");
+                filterItems();
+            });
+        });
+
+        // 4. Búsqueda
+        searchInput.addEventListener("input", function() {
+            searchQuery = searchInput.value.toLowerCase().trim();
+            filterItems();
+        });
+
+        // 5. Función de Filtrado Unificada (Tabla & Grid)
+        function filterItems() {
+            if (currentLayout === "table") {
+                // Filtrar Filas de la Tabla
+                const rows = document.querySelectorAll("#tierListTable tbody .tier-table-row");
+                rows.forEach(row => {
+                    const name = row.getAttribute("data-name") || "";
+                    const rolesStr = row.getAttribute("data-roles") || "";
+                    
+                    const matchesSearch = name.includes(searchQuery);
+                    const matchesRole = checkRoleMatch(rolesStr, currentRole);
+                    
+                    if (matchesSearch && matchesRole) {
+                        row.classList.remove("d-none");
+                    } else {
+                        row.classList.add("d-none");
+                    }
+                });
+            } else {
+                // Filtrar Grid Tradicional
+                const cards = document.querySelectorAll(".champ-grid-card");
+                const rowContainers = document.querySelectorAll(".tier-row");
+                
+                cards.forEach(card => {
+                    const name = card.getAttribute("data-name") || "";
+                    const rolesStr = card.getAttribute("data-roles") || "";
+                    
+                    const matchesSearch = name.includes(searchQuery);
+                    const matchesRole = checkRoleMatch(rolesStr, currentRole);
+                    
+                    if (matchesSearch && matchesRole) {
+                        card.classList.remove("d-none");
+                    } else {
+                        card.classList.add("d-none");
+                    }
+                });
+
+                // Ocultar filas de Tier completas si no tienen campeones visibles
+                rowContainers.forEach(container => {
+                    const visibleCards = container.querySelectorAll(".champ-grid-card:not(.d-none)");
+                    if (visibleCards.length === 0 && searchQuery !== "" || (visibleCards.length === 0 && currentRole !== "all")) {
+                        container.classList.add("d-none");
+                    } else {
+                        container.classList.remove("d-none");
+                    }
+                });
+            }
+        }
+
+        // Mapeo lógico de roles de la grieta a tags de Riot Games
+        function checkRoleMatch(rolesStr, role) {
+            if (role === "all") return true;
+            const roles = rolesStr.split(",").map(r => r.trim().toLowerCase());
+            return roles.includes(role.toLowerCase());
+        }
+
+    });
+</script>
+
+{% endblock %}

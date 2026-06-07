@@ -1,0 +1,305 @@
+{% extends 'menu.html' %}
+{% block content %}
+<div class="container py-5">
+
+    <!-- Badge de Usuario -->
+    <div class="user-badge mb-3">
+        <i class="bi bi-pencil-fill me-2"></i>Edición de Partida Registrada
+    </div>
+
+    <!-- Header -->
+    <div class="d-flex align-items-center gap-3 mb-5">
+        <a href="javascript:history.back()" class="btn-volver">
+            <i class="bi bi-arrow-left"></i>
+        </a>
+        <div>
+            <p class="tipo-relacion mb-1">
+                <span class="badge-relacion badge-referenciada">
+                    <i class="bi bi-link-45deg me-1"></i>Relación Referenciada
+                </span>
+            </p>
+            <h1 class="page-title mb-0">Modificar Partida Analizada</h1>
+            <p class="page-subtitle">Actualiza las estadísticas o comentarios de la partida analizada de este campeón.</p>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Formulario principal -->
+        <div class="col-lg-7">
+            <div class="main-card animate-fade-in">
+
+                <!-- Info del campeón referenciado -->
+                <div class="champion-ref-banner mb-4">
+                    {% if campeon.icon %}
+                    <img src="{{ campeon.icon }}" alt="{{ campeon.nombre }}" class="champion-avatar">
+                    {% endif %}
+                    <div class="flex-grow-1">
+                        <h3 class="champion-name">{{ campeon.nombre }}</h3>
+                        <div class="d-flex align-items-center gap-2 flex-wrap mt-1">
+                            <span class="tier-badge tier-{{ campeon.tier|lower }}">{{ campeon.tier }}</span>
+                            {% for r in campeon.roles %}
+                            <span class="role-badge">{{ r }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="ref-pill">
+                        <i class="bi bi-person-fill me-1"></i>Registrado por: {{ partida.registrado_por }}
+                    </div>
+                </div>
+
+                <form method="POST">
+                    {% csrf_token %}
+
+                    <!-- Resultado -->
+                    <div class="form-section mb-4">
+                        <label class="field-label">Resultado de la partida</label>
+                        <div class="resultado-row">
+                            <input type="radio" name="resultado" id="res-victoria" value="Victoria" class="res-radio" {% if partida.resultado == 'Victoria' %}checked{% endif %} required>
+                            <label for="res-victoria" class="res-btn victoria">
+                                <i class="bi bi-trophy-fill me-2"></i>Victoria
+                            </label>
+                            <input type="radio" name="resultado" id="res-derrota" value="Derrota" class="res-radio" {% if partida.resultado == 'Derrota' %}checked{% endif %}>
+                            <label for="res-derrota" class="res-btn derrota">
+                                <i class="bi bi-x-circle-fill me-2"></i>Derrota
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- KDA -->
+                    <div class="form-section mb-4">
+                        <label class="field-label">Estadísticas de KDA</label>
+                        <p class="field-hint">Kills, Muertes y Asistencias obtenidas en la partida</p>
+                        <div class="row g-3">
+                            <div class="col-4">
+                                <div class="stat-input-wrap">
+                                    <span class="stat-input-label kills-color">Kills</span>
+                                    <input type="number" name="kills" id="kills" min="0" max="50" value="{{ partida.kills }}" class="stat-input">
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="stat-input-wrap">
+                                    <span class="stat-input-label deaths-color">Deaths</span>
+                                    <input type="number" name="deaths" id="deaths" min="0" max="50" value="{{ partida.deaths }}" class="stat-input">
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="stat-input-wrap">
+                                    <span class="stat-input-label assists-color">Assists</span>
+                                    <input type="number" name="assists" id="assists" min="0" max="50" value="{{ partida.assists }}" class="stat-input">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- KDA calculado -->
+                        <div class="kda-result mt-3">
+                            <span class="kda-result-label">KDA calculado:</span>
+                            <span class="kda-numbers" id="kda-display">{{ partida.kills }} / {{ partida.deaths }} / {{ partida.assists }}</span>
+                            <span class="kda-ratio" id="kda-ratio">0.00</span>
+                        </div>
+                    </div>
+
+                    <!-- Duración y Carril -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-6">
+                            <label class="field-label">Duración de la partida</label>
+                            <div class="input-with-unit">
+                                <input type="number" name="duracion" min="5" max="90" value="{{ partida.duracion_min }}" class="styled-input" required>
+                                <span class="unit-label">minutos</span>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <label class="field-label">Carril jugado</label>
+                            <select name="carril" class="styled-select">
+                                {% for r in campeon.roles %}
+                                <option value="{{ r }}" {% if partida.carril == r %}selected{% endif %}>{{ r }}</option>
+                                {% empty %}
+                                <option value="Top" {% if partida.carril == 'Top' %}selected{% endif %}>Top</option>
+                                <option value="Jungle" {% if partida.carril == 'Jungle' %}selected{% endif %}>Jungle</option>
+                                <option value="Mid" {% if partida.carril == 'Mid' %}selected{% endif %}>Mid</option>
+                                <option value="Adc" {% if partida.carril == 'Adc' %}selected{% endif %}>ADC</option>
+                                <option value="Support" {% if partida.carril == 'Support' %}selected{% endif %}>Support</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Notas -->
+                    <div class="form-section mb-5">
+                        <label class="field-label">Notas del análisis / Comentarios <span class="text-optional">(opcional)</span></label>
+                        <p class="field-hint">Añade o edita comentarios sobre tu desempeño estratégico en la partida</p>
+                        <textarea name="notas" class="styled-textarea" rows="4" placeholder="Ej: Mejoré mi farm, pero el posicionamiento en teamfights tardías pudo ser mejor...">{{ partida.notas|default:'' }}</textarea>
+                    </div>
+
+                    <div class="d-flex gap-3">
+                        <a href="javascript:history.back()" class="btn btn-outline-secondary w-50 py-3 text-light rounded-3" style="font-weight:700;">
+                            Cancelar
+                        </a>
+                        <button type="submit" class="submit-btn w-50">
+                            <i class="bi bi-save2-fill me-2"></i>
+                            Guardar Cambios
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Panel derecho (Explicativo) -->
+        <div class="col-lg-5 d-flex flex-column gap-4">
+            <div class="side-card info-blue">
+                <div class="side-card-header mb-3">
+                    <i class="bi bi-info-circle-fill icon-blue"></i>
+                    <div>
+                        <h4 class="side-card-title">Edición Autorizada</h4>
+                        <p class="side-card-subtitle">Reglas de modificación de datos</p>
+                    </div>
+                </div>
+                <div class="info-steps">
+                    <div class="info-step-item">
+                        <div class="step-dot step-blue"><i class="bi bi-person"></i></div>
+                        <div>
+                            <strong class="text-white">Propietario del Registro</strong>
+                            <p class="step-desc">El usuario que registró la partida originalmente tiene la facultad completa de editar sus datos y comentarios.</p>
+                        </div>
+                    </div>
+                    <div class="info-step-item">
+                        <div class="step-dot step-blue"><i class="bi bi-shield-lock"></i></div>
+                        <div>
+                            <strong class="text-white">Administradores</strong>
+                            <p class="step-desc">Los administradores del sistema conservan permisos globales para moderar o corregir cualquier registro.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Vista previa en tiempo real -->
+            <div class="side-card">
+                <div class="side-card-header mb-3">
+                    <i class="bi bi-eye-fill icon-blue"></i>
+                    <div>
+                        <h4 class="side-card-title">Documento en BD</h4>
+                        <p class="side-card-subtitle">Estructura del registro actualizado</p>
+                    </div>
+                </div>
+                <div class="doc-preview">
+                    <div class="doc-row"><span class="doc-key">_id</span><span class="doc-val doc-val-id">{{ partida_id }}</span></div>
+                    <div class="doc-row"><span class="doc-key">resultado</span><span class="doc-val {% if partida.resultado == 'Victoria' %}doc-val-victoria{% else %}doc-val-derrota{% endif %}" id="preview-resultado">{{ partida.resultado }}</span></div>
+                    <div class="doc-row"><span class="doc-key">kills / deaths / assists</span><span class="doc-val" id="preview-kda">{{ partida.kills }} / {{ partida.deaths }} / {{ partida.assists }}</span></div>
+                    <div class="doc-row"><span class="doc-key">registrado_por</span><span class="doc-val">{{ partida.registrado_por }}</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .user-badge { display: inline-flex; align-items: center; background: rgba(59,130,246,0.15); border: 1px solid rgba(59,130,246,0.4); color: #93c5fd; font-size: 0.8rem; font-weight: 700; padding: 6px 14px; border-radius: 20px; letter-spacing: 0.5px; }
+    .btn-volver { background: rgba(59,130,246,0.15); border: 1px solid rgba(59,130,246,0.4); color: #93c5fd; width: 45px; height: 45px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; text-decoration: none; transition: all 0.3s; flex-shrink: 0; }
+    .btn-volver:hover { background: #3b82f6; color: white; }
+    .badge-relacion { display: inline-flex; align-items: center; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; }
+    .badge-referenciada { background: rgba(59,130,246,0.2); color: #93c5fd; border: 1px solid rgba(59,130,246,0.4); }
+    .page-title { font-family: 'Cinzel', serif; font-size: 1.9rem; color: #ffffff; letter-spacing: 2px; }
+    .page-subtitle { color: #c8c8d0; font-size: 0.9rem; margin: 4px 0 0; }
+    .icon-blue { font-size: 1.4rem; color: #60a5fa; flex-shrink: 0; }
+
+    .main-card { background: rgba(24,24,27,0.9); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 28px; }
+    .side-card { background: rgba(24,24,27,0.9); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 22px; }
+    .info-blue { border-color: rgba(59,130,246,0.3); background: rgba(59,130,246,0.04); }
+    .side-card-header { display: flex; align-items: flex-start; gap: 14px; padding-bottom: 14px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+    .side-card-title { color: #ffffff; font-size: 1rem; font-weight: 700; margin: 0 0 3px; }
+    .side-card-subtitle { color: #b0b0c0; font-size: 0.8rem; margin: 0; }
+
+    .champion-ref-banner { display: flex; align-items: center; gap: 16px; background: rgba(59,130,246,0.07); border: 1px solid rgba(59,130,246,0.25); border-radius: 12px; padding: 14px 18px; flex-wrap: wrap; }
+    .champion-avatar { width: 58px; height: 58px; border-radius: 50%; border: 3px solid #3b82f6; }
+    .champion-name { font-size: 1.2rem; font-weight: 700; color: #ffffff; margin: 0; }
+    .tier-badge { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 6px; font-size: 0.8rem; font-weight: 800; }
+    .tier-badge.tier-s { background: #ff8c00; color: #fff; }
+    .tier-badge.tier-a { background: #be3eff; color: #fff; }
+    .tier-badge.tier-b { background: #3e8bff; color: #fff; }
+    .tier-badge.tier-c { background: #3effbf; color: #000; }
+    .tier-badge.tier-d { background: #8c8c8c; color: #fff; }
+    .role-badge { background: rgba(59,130,246,0.15); border: 1px solid rgba(59,130,246,0.3); color: #93c5fd; padding: 2px 10px; border-radius: 20px; font-size: 0.78rem; font-weight: 600; }
+    .ref-pill { background: rgba(59,130,246,0.12); border: 1px solid rgba(59,130,246,0.3); color: #93c5fd; padding: 5px 10px; border-radius: 6px; font-size: 0.78rem; white-space: nowrap; }
+
+    .field-label { display: block; color: #f0f0f8; font-size: 0.95rem; font-weight: 700; margin-bottom: 4px; }
+    .field-hint { color: #b0b0c0; font-size: 0.83rem; margin-bottom: 10px; }
+    .text-optional { color: #707080; font-size: 0.8rem; font-weight: 400; }
+
+    .resultado-row { display: flex; gap: 12px; }
+    .res-radio { display: none; }
+    .res-btn { flex: 1; text-align: center; padding: 14px; border-radius: 10px; font-weight: 700; font-size: 0.95rem; cursor: pointer; transition: all 0.25s; border: 2px solid transparent; opacity: 0.5; }
+    .res-btn.victoria { background: rgba(34,197,94,0.1); color: #6ee7b0; border-color: rgba(34,197,94,0.25); }
+    .res-btn.derrota { background: rgba(239,68,68,0.1); color: #fca5a5; border-color: rgba(239,68,68,0.25); }
+    .res-radio:checked + .res-btn { opacity: 1; transform: scale(1.04); }
+    .res-btn:hover { opacity: 0.8; }
+
+    .stat-input-wrap { background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.12); border-radius: 10px; padding: 12px; text-align: center; }
+    .stat-input-label { display: block; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+    .kills-color { color: #6ee7b0; }
+    .deaths-color { color: #fca5a5; }
+    .assists-color { color: #93c5fd; }
+    .stat-input { width: 100%; background: transparent !important; border: none !important; color: #ffffff !important; font-size: 1.6rem; font-weight: 800; text-align: center; outline: none; }
+
+    .kda-result { background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 10px 14px; display: flex; align-items: center; gap: 10px; }
+    .kda-result-label { color: #b0b0c0; font-size: 0.85rem; }
+    .kda-numbers { font-family: monospace; color: #ffffff; font-weight: 700; font-size: 1rem; }
+    .kda-ratio { background: rgba(59,130,246,0.2); color: #93c5fd; border-radius: 6px; padding: 3px 10px; font-size: 0.85rem; font-weight: 700; margin-left: auto; }
+
+    .input-with-unit { position: relative; }
+    .styled-input { width: 100%; background: rgba(0,0,0,0.4) !important; border: 1px solid rgba(255,255,255,0.12) !important; color: #f0f0f8 !important; border-radius: 10px; padding: 12px 14px; font-size: 1rem; outline: none; transition: border-color 0.3s; }
+    .styled-input:focus { border-color: rgba(59,130,246,0.5) !important; box-shadow: 0 0 0 3px rgba(59,130,246,0.1) !important; }
+    .unit-label { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: #707080; font-size: 0.8rem; pointer-events: none; }
+    .styled-select { width: 100%; background: rgba(0,0,0,0.4) !important; border: 1px solid rgba(255,255,255,0.12) !important; color: #f0f0f8 !important; border-radius: 10px; padding: 12px 14px; font-size: 1rem; outline: none; cursor: pointer; transition: border-color 0.3s; }
+    .styled-select:focus { border-color: rgba(59,130,246,0.5) !important; }
+    .styled-select option { background: #1a1a2e; color: #f0f0f8; }
+    .styled-textarea { width: 100%; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.12); color: #f0f0f8; border-radius: 10px; padding: 12px 14px; font-size: 0.9rem; resize: none; transition: border-color 0.3s; }
+    .styled-textarea:focus { border-color: rgba(59,130,246,0.5); outline: none; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
+    .styled-textarea::placeholder { color: #505060; }
+
+    .submit-btn { background: linear-gradient(135deg, #3b82f6, #1d4ed8); border: none; color: white; font-weight: 800; font-size: 1rem; padding: 15px 28px; border-radius: 10px; cursor: pointer; transition: all 0.3s; letter-spacing: 0.5px; }
+    .submit-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(59,130,246,0.35); }
+
+    .info-steps { display: flex; flex-direction: column; gap: 15px; }
+    .info-step-item { display: flex; align-items: flex-start; gap: 12px; }
+    .step-dot { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; font-weight: 800; flex-shrink: 0; }
+    .step-blue { background: rgba(59,130,246,0.25); color: #93c5fd; border: 1px solid rgba(59,130,246,0.35); }
+    .step-desc { color: #c0c0d0; font-size: 0.82rem; margin: 3px 0 0; line-height: 1.4; }
+
+    .doc-preview { background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 14px 16px; }
+    .doc-row { display: flex; align-items: center; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.05); gap: 10px; }
+    .doc-row:last-of-type { border-bottom: none; }
+    .doc-key { color: #8090a0; font-family: monospace; font-size: 0.75rem; }
+    .doc-val { color: #e0e0f0; font-family: monospace; font-size: 0.78rem; font-weight: 600; }
+    .doc-val-id { color: #60a5fa; }
+    .doc-val-victoria { color: #6ee7b0 !important; }
+    .doc-val-derrota { color: #fca5a5 !important; }
+</style>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    function updatePreview() {
+        const k = parseInt(document.getElementById('kills').value) || 0;
+        const d = parseInt(document.getElementById('deaths').value) || 0;
+        const a = parseInt(document.getElementById('assists').value) || 0;
+        const kda = d > 0 ? ((k + a) / d).toFixed(2) : (k + a).toFixed(2);
+        document.getElementById('kda-display').textContent = `${k} / ${d} / ${a}`;
+        document.getElementById('kda-ratio').textContent = kda;
+        document.getElementById('preview-kda').textContent = `${k} / ${d} / ${a}`;
+    }
+
+    document.querySelectorAll('.res-radio').forEach(r => {
+        r.addEventListener('change', function() {
+            const preview = document.getElementById('preview-resultado');
+            preview.textContent = this.value;
+            preview.className = 'doc-val ' + (this.value === 'Victoria' ? 'doc-val-victoria' : 'doc-val-derrota');
+        });
+    });
+
+    document.getElementById('kills').addEventListener('input', updatePreview);
+    document.getElementById('deaths').addEventListener('input', updatePreview);
+    document.getElementById('assists').addEventListener('input', updatePreview);
+    
+    // Ejecución inicial para calcular KDA cargado
+    updatePreview();
+});
+</script>
+{% endblock %}

@@ -1,0 +1,257 @@
+{% extends 'menu.html' %}
+{% block content %}
+<div class="container py-5">
+
+    <!-- Badge de Admin -->
+    <div class="admin-badge mb-3">
+        <i class="bi bi-shield-lock-fill me-2"></i>Panel exclusivo de Administrador
+    </div>
+
+    <!-- Header -->
+    <div class="d-flex align-items-center gap-3 mb-5">
+        <a href="{% url 'gestion_campeones' %}" class="btn-volver">
+            <i class="bi bi-arrow-left"></i>
+        </a>
+        <div>
+            <p class="tipo-relacion mb-1">
+                <span class="badge-relacion badge-incrustada">
+                    <i class="bi bi-layers-fill me-1"></i>Relación Incrustada
+                </span>
+            </p>
+            <h1 class="page-title mb-0">Cambiar Tier del Campeón</h1>
+            <p class="page-subtitle">El cambio queda registrado en el historial del propio campeón.</p>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Formulario principal -->
+        <div class="col-lg-7">
+            <div class="main-card">
+                <!-- Info del campeón -->
+                <div class="champion-banner mb-4">
+                    {% if personaje.icon %}
+                    <img src="{{ personaje.icon }}" alt="{{ personaje.nombre }}" class="champion-avatar">
+                    {% endif %}
+                    <div class="flex-grow-1">
+                        <h3 class="champion-name">{{ personaje.nombre }}</h3>
+                        <div class="d-flex align-items-center gap-2 flex-wrap mt-1">
+                            <span class="tier-current-label">Tier actual:</span>
+                            <span class="tier-badge tier-{{ personaje.tier|lower }}">{{ personaje.tier }}</span>
+                            {% for r in personaje.roles %}
+                            <span class="role-badge">{{ r }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <form method="POST">
+                    {% csrf_token %}
+
+                    <!-- Selección de Tier -->
+                    <div class="form-section mb-4">
+                        <label class="field-label">¿A qué tier quieres moverlo?</label>
+                        <p class="field-hint">Selecciona el nuevo tier para {{ personaje.nombre }}</p>
+                        <div class="tier-grid">
+                            {% for t in "SABCD" %}
+                            <input type="radio" class="tier-radio" name="nuevo_tier" id="tier-{{ t }}" value="{{ t }}" required
+                                {% if t == personaje.tier %}checked{% endif %}>
+                            <label for="tier-{{ t }}" class="tier-btn tier-{{ t|lower }}">
+                                <span class="tier-letter">{{ t }}</span>
+                                <span class="tier-name">
+                                    {% if t == "S" %}Meta
+                                    {% elif t == "A" %}Fuerte
+                                    {% elif t == "B" %}Viable
+                                    {% elif t == "C" %}Débil
+                                    {% else %}Inútil{% endif %}
+                                </span>
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Motivo -->
+                    <div class="form-section mb-5">
+                        <label for="motivo" class="field-label">¿Por qué cambias el tier?</label>
+                        <p class="field-hint">Describe brevemente el motivo del cambio (buffs, nerfs, meta, etc.)</p>
+                        <textarea
+                            id="motivo"
+                            name="motivo"
+                            class="styled-textarea"
+                            rows="3"
+                            placeholder="Ej: Recibió buffs en el parche 14.12, su daño aumentó un 15%..."
+                            required
+                        ></textarea>
+                    </div>
+
+                    <button type="submit" class="submit-btn w-100">
+                        <i class="bi bi-check-circle-fill me-2"></i>
+                        Confirmar Cambio de Tier
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Panel derecho -->
+        <div class="col-lg-5 d-flex flex-column gap-4">
+
+            <!-- Historial existente -->
+            <div class="side-card">
+                <div class="side-card-header">
+                    <i class="bi bi-clock-history icon-gold"></i>
+                    <div>
+                        <h4 class="side-card-title">Historial de Cambios</h4>
+                        <p class="side-card-subtitle">Cambios anteriores de este campeón</p>
+                    </div>
+                </div>
+                {% if personaje.historial_tier %}
+                    <div class="historial-list">
+                        {% for h in personaje.historial_tier %}
+                        <div class="historial-item">
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <span class="tier-badge-sm tier-{{ h.tier_anterior|lower }}">{{ h.tier_anterior }}</span>
+                                <i class="bi bi-arrow-right text-gold fs-6"></i>
+                                <span class="tier-badge-sm tier-{{ h.tier_nuevo|lower }}">{{ h.tier_nuevo }}</span>
+                                <span class="ms-auto fecha-badge">{{ h.fecha }}</span>
+                            </div>
+                            <p class="historial-motivo">"{{ h.motivo }}"</p>
+                            <small class="text-light opacity-75">por {{ h.realizado_por }}</small>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="empty-box">
+                        <i class="bi bi-archive text-gold opacity-50" style="font-size:2rem;"></i>
+                        <p class="text-light mt-2 mb-0">Aún no hay cambios registrados</p>
+                        <small class="text-light opacity-75">El historial aparecerá aquí</small>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Explicación amigable -->
+            <div class="side-card info-gold">
+                <div class="side-card-header mb-3">
+                    <i class="bi bi-lightbulb-fill icon-gold"></i>
+                    <div>
+                        <h4 class="side-card-title">¿Cómo funciona por dentro?</h4>
+                        <p class="side-card-subtitle">Información técnica del sistema</p>
+                    </div>
+                </div>
+                <div class="info-steps">
+                    <div class="info-step-item">
+                        <div class="step-dot step-gold">1</div>
+                        <div>
+                            <strong class="text-white">Un solo documento</strong>
+                            <p class="step-desc">El campeón y todo su historial viven juntos en el mismo lugar de la base de datos.</p>
+                        </div>
+                    </div>
+                    <div class="info-step-item">
+                        <div class="step-dot step-gold">2</div>
+                        <div>
+                            <strong class="text-white">Cambio instantáneo y seguro</strong>
+                            <p class="step-desc">Se actualiza el tier y se guarda el registro del cambio en una sola operación.</p>
+                        </div>
+                    </div>
+                    <div class="info-step-item">
+                        <div class="step-dot step-gold">3</div>
+                        <div>
+                            <strong class="text-white">Ver el reporte completo</strong>
+                            <p class="step-desc">Todos los cambios de todos los campeones se pueden ver en el reporte de historial.</p>
+                        </div>
+                    </div>
+                </div>
+                <a href="{% url 'reporte_historial_tier' %}" class="link-report">
+                    <i class="bi bi-bar-chart-line-fill me-2"></i>Ver reporte de historial completo
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .admin-badge {
+        display: inline-flex; align-items: center;
+        background: rgba(200,170,110,0.15);
+        border: 1px solid rgba(200,170,110,0.4);
+        color: #f0d080; font-size: 0.8rem; font-weight: 700;
+        padding: 6px 14px; border-radius: 20px; letter-spacing: 0.5px;
+    }
+    .btn-volver {
+        background: rgba(200,170,110,0.15); border: 1px solid rgba(200,170,110,0.4);
+        color: #f0d080; width: 45px; height: 45px; border-radius: 10px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.3rem; text-decoration: none; transition: all 0.3s; flex-shrink: 0;
+    }
+    .btn-volver:hover { background: #c8aa6e; color: #09090b; }
+    .badge-relacion { display: inline-flex; align-items: center; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; }
+    .badge-incrustada { background: rgba(200,170,110,0.2); color: #f0d080; border: 1px solid rgba(200,170,110,0.4); }
+    .page-title { font-family: 'Cinzel', serif; font-size: 1.9rem; color: #ffffff; letter-spacing: 2px; }
+    .page-subtitle { color: #c8c8d0; font-size: 0.9rem; margin: 4px 0 0; }
+    .text-gold { color: #c8aa6e !important; }
+    .icon-gold { font-size: 1.4rem; color: #f0d080; flex-shrink: 0; }
+
+    .main-card { background: rgba(24,24,27,0.9); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 28px; }
+    .side-card { background: rgba(24,24,27,0.9); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 22px; }
+    .info-gold { border-color: rgba(200,170,110,0.25); background: rgba(200,170,110,0.04); }
+    .side-card-header { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 16px; padding-bottom: 14px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+    .side-card-title { color: #ffffff; font-size: 1rem; font-weight: 700; margin: 0 0 3px; }
+    .side-card-subtitle { color: #b0b0c0; font-size: 0.8rem; margin: 0; }
+
+    .champion-banner { display: flex; align-items: center; gap: 16px; background: rgba(200,170,110,0.06); border: 1px solid rgba(200,170,110,0.2); border-radius: 12px; padding: 16px; }
+    .champion-avatar { width: 60px; height: 60px; border-radius: 50%; border: 3px solid #c8aa6e; }
+    .champion-name { font-size: 1.3rem; font-weight: 700; color: #ffffff; margin: 0; }
+    .tier-current-label { color: #c8c8d0; font-size: 0.85rem; }
+
+    .tier-badge { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 7px; font-size: 0.85rem; font-weight: 800; }
+    .tier-badge.tier-s { background: #ff8c00; color: #fff; }
+    .tier-badge.tier-a { background: #be3eff; color: #fff; }
+    .tier-badge.tier-b { background: #3e8bff; color: #fff; }
+    .tier-badge.tier-c { background: #3effbf; color: #000; }
+    .tier-badge.tier-d { background: #8c8c8c; color: #fff; }
+    .role-badge { background: rgba(59,130,246,0.15); border: 1px solid rgba(59,130,246,0.3); color: #93c5fd; padding: 2px 10px; border-radius: 20px; font-size: 0.78rem; font-weight: 600; }
+
+    .form-section { }
+    .field-label { display: block; color: #f0f0f8; font-size: 1rem; font-weight: 700; margin-bottom: 4px; }
+    .field-hint { color: #b0b0c0; font-size: 0.85rem; margin-bottom: 12px; }
+
+    .tier-grid { display: flex; gap: 8px; }
+    .tier-radio { display: none; }
+    .tier-btn { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 14px 8px; border-radius: 10px; cursor: pointer; transition: all 0.25s; border: 2px solid transparent; opacity: 0.45; gap: 4px; }
+    .tier-letter { font-size: 1.5rem; font-weight: 900; font-family: 'Cinzel', serif; }
+    .tier-name { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+    .tier-btn.tier-s { background: rgba(255,140,0,0.12); color: #ffb347; border-color: rgba(255,140,0,0.2); }
+    .tier-btn.tier-a { background: rgba(190,62,255,0.12); color: #d48aff; border-color: rgba(190,62,255,0.2); }
+    .tier-btn.tier-b { background: rgba(62,139,255,0.12); color: #7db8ff; border-color: rgba(62,139,255,0.2); }
+    .tier-btn.tier-c { background: rgba(62,255,191,0.12); color: #5effcf; border-color: rgba(62,255,191,0.2); }
+    .tier-btn.tier-d { background: rgba(140,140,140,0.12); color: #b0b0b0; border-color: rgba(140,140,140,0.2); }
+    .tier-radio:checked + .tier-btn { opacity: 1; transform: scale(1.06); box-shadow: 0 4px 20px rgba(0,0,0,0.4); border-opacity: 1; }
+    .tier-btn:hover { opacity: 0.8; }
+
+    .styled-textarea { width: 100%; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.15); color: #f0f0f8 !important; border-radius: 10px; padding: 12px 14px; font-size: 0.9rem; resize: none; transition: border-color 0.3s; }
+    .styled-textarea:focus { border-color: rgba(200,170,110,0.6); outline: none; box-shadow: 0 0 0 3px rgba(200,170,110,0.12); }
+    .styled-textarea::placeholder { color: #707080; }
+
+    .submit-btn { background: linear-gradient(135deg, #c8aa6e, #8a6520); border: none; color: #09090b; font-weight: 800; font-size: 1rem; padding: 15px 28px; border-radius: 10px; cursor: pointer; transition: all 0.3s; letter-spacing: 0.5px; }
+    .submit-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(200,170,110,0.35); filter: brightness(1.1); }
+
+    .historial-list { display: flex; flex-direction: column; gap: 10px; max-height: 300px; overflow-y: auto; }
+    .historial-item { background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 12px 14px; }
+    .historial-motivo { font-size: 0.83rem; color: #d0d0e0; margin: 6px 0 4px; font-style: italic; }
+    .fecha-badge { font-size: 0.7rem; color: #9090a0; font-family: monospace; }
+
+    .tier-badge-sm { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 6px; font-size: 0.75rem; font-weight: 800; }
+    .tier-badge-sm.tier-s { background: #ff8c00; color: #fff; }
+    .tier-badge-sm.tier-a { background: #be3eff; color: #fff; }
+    .tier-badge-sm.tier-b { background: #3e8bff; color: #fff; }
+    .tier-badge-sm.tier-c { background: #3effbf; color: #000; }
+    .tier-badge-sm.tier-d { background: #8c8c8c; color: #fff; }
+
+    .empty-box { text-align: center; padding: 20px; }
+    .info-steps { display: flex; flex-direction: column; gap: 16px; margin-bottom: 18px; }
+    .info-step-item { display: flex; align-items: flex-start; gap: 12px; }
+    .step-dot { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 800; flex-shrink: 0; }
+    .step-gold { background: rgba(200,170,110,0.25); color: #f0d080; border: 1px solid rgba(200,170,110,0.3); }
+    .step-desc { color: #c8c8d8; font-size: 0.82rem; margin: 3px 0 0; line-height: 1.4; }
+    .link-report { display: flex; align-items: center; background: rgba(200,170,110,0.12); border: 1px solid rgba(200,170,110,0.3); color: #f0d080; padding: 10px 16px; border-radius: 8px; text-decoration: none; font-size: 0.85rem; font-weight: 700; transition: all 0.3s; }
+    .link-report:hover { background: #c8aa6e; color: #09090b; }
+</style>
+{% endblock %}
