@@ -10,9 +10,15 @@
     <!-- Header -->
     <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-3">
         <div class="d-flex align-items-center gap-3">
+            {% if user.is_staff %}
             <a href="{% url 'gestion_campeones' %}" class="btn-volver">
                 <i class="bi bi-arrow-left"></i>
             </a>
+            {% else %}
+            <a href="{% url 'campeones' %}" class="btn-volver" style="border-color: rgba(200, 170, 110, 0.4); color: #c8aa6e; background: rgba(200, 170, 110, 0.15);">
+                <i class="bi bi-arrow-left"></i>
+            </a>
+            {% endif %}
             <div>
                 <p class="tipo-relacion mb-1">
                     <span class="badge-relacion badge-referenciada">
@@ -23,13 +29,19 @@
                 <p class="page-subtitle">Registro de todas las partidas jugadas con sus estadísticas asociadas al campeón.</p>
             </div>
         </div>
-        <a href="{% url 'reporte_historial_tier' %}" class="nav-report-link nav-link-gold">
-            <i class="bi bi-database-fill-lock me-2"></i>Ver Historial de Tier →
-        </a>
+        <div class="d-flex gap-2">
+            <button onclick="window.print()" class="btn btn-outline-light d-inline-flex align-items-center rounded-3 px-3 py-2 border-secondary" style="font-size:0.85rem; font-weight:700;">
+                <i class="bi bi-printer me-2"></i> Imprimir PDF
+            </button>
+            <a href="{% url 'reporte_historial_tier' %}" class="nav-report-link nav-link-gold m-0">
+                <i class="bi bi-database-fill-lock me-2"></i>Ver Historial de Tier →
+            </a>
+        </div>
     </div>
 
     <!-- Filtro de Búsqueda de Usuario -->
     <div class="dashboard-controls d-flex flex-wrap align-items-center justify-content-between p-3 gap-3 mb-4 rounded-3" style="background: rgba(20, 20, 26, 0.6); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px;">
+        {% if user.is_staff %}
         <form method="GET" class="d-flex align-items-center gap-2 flex-grow-1" style="max-width: 450px;">
             <div class="input-group">
                 <span class="input-group-text bg-dark border-secondary text-gold"><i class="bi bi-person-search"></i></span>
@@ -47,6 +59,11 @@
             Mostrando todas las partidas de la comunidad
             {% endif %}
         </div>
+        {% else %}
+        <div class="text-muted small">
+            Mostrando tus análisis personales de partidas (conectado como <strong class="text-gold">{{ user.username }}</strong>)
+        </div>
+        {% endif %}
     </div>
 
     <!-- Métricas -->
@@ -116,7 +133,7 @@
                         <th>Notas de análisis</th>
                         <th>Registrado por</th>
                         <th>Fecha de registro</th>
-                        <th>Acciones</th>
+                        <th class="actions-column">Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -177,7 +194,7 @@
                         <!-- Fecha -->
                         <td><span class="fecha-cell">{{ p.fecha }}</span></td>
                         <!-- Acciones -->
-                        <td class="text-center">
+                        <td class="text-center actions-column">
                             {% if user.username == p.registrado_por or user.is_staff %}
                             <div class="d-flex gap-1 justify-content-center">
                                 <a href="{% url 'editar_partida' p.id %}" class="btn btn-sm btn-outline-secondary p-1 border-secondary" title="Editar"><i class="bi bi-pencil-square" style="font-size:0.85rem;"></i></a>
@@ -197,10 +214,17 @@
     <div class="empty-state">
         <i class="bi bi-controller text-blue-bright" style="font-size:3.5rem; opacity:0.7;"></i>
         <h3 class="text-white mt-4 mb-2">Aún no has analizado partidas</h3>
+        {% if user.is_staff %}
         <p class="text-light opacity-75">Ve a Gestión de Campeones y presiona el botón del mando de consola para registrar una partida.</p>
         <a href="{% url 'gestion_campeones' %}" class="action-btn-blue mt-3" style="text-decoration:none;">
             <i class="bi bi-arrow-left me-2"></i>Ir a Gestión de Campeones
         </a>
+        {% else %}
+        <p class="text-light opacity-75">Ve a Campeones del Meta, entra a un campeón y presiona "Analizar Partida" para registrar una.</p>
+        <a href="{% url 'campeones' %}" class="action-btn-blue mt-3" style="text-decoration:none; border-color: rgba(200, 170, 110, 0.4); color: #c8aa6e; background: rgba(200, 170, 110, 0.15);">
+            <i class="bi bi-person-fill-gear me-2"></i>Ver Campeones
+        </a>
+        {% endif %}
     </div>
     {% endif %}
 

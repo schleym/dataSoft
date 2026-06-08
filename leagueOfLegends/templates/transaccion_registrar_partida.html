@@ -2,16 +2,28 @@
 {% block content %}
 <div class="container py-5">
 
-    <!-- Badge de Admin -->
+    <!-- Badge de Rol (Admin o Jugador) -->
+    {% if user.is_staff %}
     <div class="admin-badge mb-3">
         <i class="bi bi-shield-lock-fill me-2"></i>Panel exclusivo de Administrador
     </div>
+    {% else %}
+    <div class="admin-badge mb-3" style="background: rgba(200, 170, 110, 0.15); border-color: rgba(200, 170, 110, 0.4); color: #c8aa6e;">
+        <i class="bi bi-controller me-2"></i>Análisis de Partida para {{ user.username }}
+    </div>
+    {% endif %}
 
     <!-- Header -->
     <div class="d-flex align-items-center gap-3 mb-5">
+        {% if user.is_staff %}
         <a href="{% url 'gestion_campeones' %}" class="btn-volver">
             <i class="bi bi-arrow-left"></i>
         </a>
+        {% else %}
+        <a href="{% url 'campeon_detalle' personaje_id %}" class="btn-volver" style="border-color: rgba(200, 170, 110, 0.4); color: #c8aa6e; background: rgba(200, 170, 110, 0.15);">
+            <i class="bi bi-arrow-left"></i>
+        </a>
+        {% endif %}
         <div>
             <p class="tipo-relacion mb-1">
                 <span class="badge-relacion badge-referenciada">

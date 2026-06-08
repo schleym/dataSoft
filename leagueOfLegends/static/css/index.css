@@ -742,3 +742,327 @@ body {
         gap: 15px;
     }
 }
+
+/* ============================================================
+   ESTILOS DE IMPRESIÓN (PDF PREMIUM SCREENSHOT LAYOUT)
+   ============================================================ */
+@media print {
+    * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    body {
+        background-color: #09090b !important;
+        color: #f8fafc !important;
+        font-size: 8pt !important;
+        line-height: 1.25 !important;
+    }
+
+    /* Ocultar elementos innecesarios en la impresión */
+    nav, 
+    footer, 
+    .offcanvas,
+    .offcanvas-start,
+    .sidebar-trigger,
+    .btn-close,
+    .menu-lateral, 
+    .sidebar-nav, 
+    .navbar, 
+    header, 
+    .btn-volver-float, 
+    .btn-volver, 
+    .btn-volver-float-container,
+    .top-float-buttons,
+    .nav-report-link,
+    .dashboard-controls,
+    .user-actions-bar,
+    .explain-banner,
+    .empty-state a,
+    #formComentario,
+    .comment-input-wrapper,
+    .custom-notification-container,
+    body > .p-4,
+    button, 
+    .btn, 
+    form, 
+    input, 
+    select, 
+    textarea,
+    a[href^="javascript:"] {
+        display: none !important;
+    }
+
+    /* Forzar contenedor completo y reducir márgenes */
+    .container, 
+    .container-meta, 
+    .champion-detail-wrapper,
+    main {
+        width: 100% !important;
+        max-width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    /* Márgenes de página ultra compactos */
+    @page {
+        margin: 0.4cm;
+    }
+
+    /* Forzar grid de dos columnas en impresión y reducir espaciados */
+    .row {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: wrap !important;
+        --bs-gutter-x: 8px !important;
+        --bs-gutter-y: 8px !important;
+    }
+    
+    .col-lg-8 {
+        width: 66.666667% !important;
+        flex: 0 0 66.666667% !important;
+        max-width: 66.666667% !important;
+    }
+
+    .col-lg-4 {
+        width: 33.333333% !important;
+        flex: 0 0 33.333333% !important;
+        max-width: 33.333333% !important;
+    }
+
+    .col-md-6 {
+        width: 50% !important;
+        flex: 0 0 50% !important;
+        max-width: 50% !important;
+    }
+
+    .mb-4, .my-4 {
+        margin-bottom: 6px !important;
+        margin-top: 6px !important;
+    }
+
+    .mt-4 {
+        margin-top: 6px !important;
+    }
+
+    /* Hero ultra compacto en Impresión */
+    .champion-hero {
+        height: 120px !important;
+        padding-bottom: 6px !important;
+        border-radius: 6px !important;
+        margin-bottom: 8px !important;
+        display: flex !important;
+        align-items: center !important;
+    }
+
+    .champion-title {
+        font-size: 1.6rem !important;
+        letter-spacing: 1px !important;
+        margin-bottom: 4px !important;
+    }
+
+    .champion-tags {
+        margin-bottom: 2px !important;
+    }
+
+    .tag-pill {
+        padding: 2px 8px !important;
+        font-size: 0.65rem !important;
+    }
+
+    .winrate-orb {
+        width: 60px !important;
+        height: 60px !important;
+        border-width: 1px !important;
+        margin: 0 auto !important;
+    }
+
+    .wr-value {
+        font-size: 1rem !important;
+    }
+
+    .wr-label {
+        font-size: 0.5rem !important;
+        margin-top: 1px !important;
+    }
+
+    .container.mt-n5 {
+        margin-top: 0 !important;
+    }
+
+    /* Tarjetas ultra compactas */
+    .glass-card-premium {
+        background: rgba(24, 24, 27, 0.85) !important;
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        box-shadow: none !important;
+        padding: 8px !important;
+        margin-bottom: 8px !important;
+        border-radius: 8px !important;
+    }
+
+    .section-title-premium {
+        font-size: 0.85rem !important;
+        margin-bottom: 6px !important;
+    }
+
+    /* Habilidades compactas */
+    .ability-icon-wrapper img {
+        max-width: 32px !important;
+        border-radius: 6px !important;
+    }
+
+    .ability-name {
+        font-size: 0.65rem !important;
+    }
+
+    .build-grid {
+        grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)) !important;
+        gap: 4px !important;
+    }
+
+    .item-card-detail {
+        padding: 4px !important;
+        border-radius: 6px !important;
+    }
+
+    .item-card-detail img {
+        width: 24px !important;
+        height: 24px !important;
+        border-width: 1px !important;
+    }
+
+    .item-name {
+        font-size: 0.6rem !important;
+    }
+
+    /* Runas ultra compactas */
+    .rune-item-detail {
+        padding: 4px 8px !important;
+        margin-bottom: 4px !important;
+        border-radius: 6px !important;
+        gap: 6px !important;
+    }
+
+    .rune-item-detail img {
+        width: 22px !important;
+        height: 22px !important;
+    }
+
+    .rune-item-detail span {
+        font-size: 0.7rem !important;
+    }
+
+    /* Stats ultra compactas */
+    .stat-row {
+        padding: 4px 0 !important;
+    }
+
+    .stat-label-detail, .stat-value-detail {
+        font-size: 0.72rem !important;
+    }
+
+    /* Matchups ultra compactos */
+    .matchup-card-pro {
+        padding: 6px !important;
+        margin-bottom: 4px !important;
+        border-radius: 6px !important;
+        gap: 6px !important;
+    }
+
+    .matchup-card-pro img {
+        width: 24px !important;
+        height: 24px !important;
+    }
+
+    .m-name {
+        font-size: 0.75rem !important;
+    }
+
+    .m-wr {
+        font-size: 0.7rem !important;
+    }
+
+    /* Comentarios ultra compactos */
+    .comment-card {
+        padding: 6px 8px !important;
+        margin-bottom: 6px !important;
+        border-radius: 6px !important;
+    }
+
+    .comment-user-avatar-mini {
+        width: 22px !important;
+        height: 22px !important;
+        min-width: 22px !important;
+        font-size: 0.75rem !important;
+    }
+
+    .comment-username {
+        font-size: 0.7rem !important;
+    }
+
+    .comment-text {
+        font-size: 0.72rem !important;
+    }
+
+    /* Report tables */
+    .reporte-table thead th {
+        padding: 6px 8px !important;
+        font-size: 0.6rem !important;
+    }
+
+    .reporte-table tbody td {
+        padding: 6px 8px !important;
+        font-size: 0.72rem !important;
+    }
+
+    .champ-icon {
+        width: 24px !important;
+        height: 24px !important;
+    }
+
+    .champ-name {
+        font-size: 0.78rem !important;
+    }
+
+    .tier-badge, .tier-pill, .badge-tier-community {
+        padding: 1px 6px !important;
+        font-size: 0.65rem !important;
+    }
+
+    .res-badge {
+        padding: 2px 6px !important;
+        font-size: 0.65rem !important;
+    }
+
+    /* Control de salto de página */
+    tr, .ability-item, .rune-item-detail, .item-card-detail, .matchup-item, .comment-card {
+        page-break-inside: avoid !important;
+    }
+
+    h1, h2, h3, h4, h5 {
+        page-break-after: avoid !important;
+    }
+
+    /* Evitar recorte por barra de scroll (slicer) en impresión y ocultar columna acciones */
+    .table-responsive, .report-table-card {
+        overflow: visible !important;
+        overflow-x: visible !important;
+        display: block !important;
+        width: 100% !important;
+    }
+
+    .reporte-table {
+        width: 100% !important;
+        table-layout: auto !important;
+    }
+
+    .reporte-table thead th, 
+    .reporte-table tbody td {
+        white-space: normal !important;
+        word-break: break-word !important;
+    }
+
+    .actions-column {
+        display: none !important;
+    }
+}

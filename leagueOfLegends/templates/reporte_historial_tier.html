@@ -23,9 +23,14 @@
                 <p class="page-subtitle">Todos los cambios de clasificación registrados en el sistema.</p>
             </div>
         </div>
-        <a href="{% url 'reporte_partidas_analizadas' %}" class="nav-report-link nav-link-blue">
-            <i class="bi bi-controller me-2"></i>Ver Reporte de Partidas →
-        </a>
+        <div class="d-flex gap-2">
+            <button onclick="window.print()" class="btn btn-outline-light d-inline-flex align-items-center rounded-3 px-3 py-2 border-secondary" style="font-size:0.85rem; font-weight:700;">
+                <i class="bi bi-printer me-2"></i> Imprimir PDF
+            </button>
+            <a href="{% url 'reporte_partidas_analizadas' %}" class="nav-report-link nav-link-blue m-0">
+                <i class="bi bi-controller me-2"></i>Ver Reporte de Partidas →
+            </a>
+        </div>
     </div>
 
     <!-- Filtro de Búsqueda de Administrador -->

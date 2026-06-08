@@ -1,3 +1,4 @@
+# pyrefly: ignore [missing-import]
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -649,10 +650,10 @@ def transaccion_registrar_partida(request, pk):
         personaje = personajes_collection.find_one({"_id": obj_id})
         if not personaje:
             messages.error(request, "Campeón no encontrado.")
-            return redirect('gestion_campeones')
+            return redirect('gestion_campeones' if request.user.is_staff else 'campeones')
     except Exception:
         messages.error(request, "ID no válido.")
-        return redirect('gestion_campeones')
+        return redirect('gestion_campeones' if request.user.is_staff else 'campeones')
 
     if request.method == 'POST':
         resultado = request.POST.get('resultado', '').strip()
@@ -697,7 +698,7 @@ def transaccion_registrar_partida(request, pk):
                 f"Partida con '{personaje['nombre']}' registrada exitosamente en la colección "
                 f"'partidas_analizadas' con referencia al ID del campeón."
             )
-            return redirect('gestion_campeones')
+            return redirect('gestion_campeones' if request.user.is_staff else 'campeon_detalle', pk=pk)
         except Exception as e:
             messages.error(request, f"Error al registrar la partida: {e}")
 
@@ -794,8 +795,13 @@ def reporte_partidas_analizadas(request):
         username_filter = request.GET.get('usuario', '').strip()
         pipeline = []
         
-        if username_filter:
-            pipeline.append({"$match": {"registrado_por": username_filter}})
+        # Si no es administrador, forzar que solo vea sus propias partidas
+        if not request.user.is_staff:
+            username_filter = request.user.username
+            pipeline.append({"$match": {"registrado_por": request.user.username}})
+        else:
+            if username_filter:
+                pipeline.append({"$match": {"registrado_por": username_filter}})
             
         pipeline.extend([
             # $lookup → JOIN entre partidas_analizadas y personajes por campeon_id/_id
@@ -877,37 +883,41 @@ def perfil_usuario(request, username):
     for p in personajes_db:
         p['id'] = str(p['_id'])
     
-    # Obtener las partidas analizadas registradas por este usuario
-    pipeline_partidas = [
-        {"$match": {"registrado_por": user_obj.username}},
-        {"$lookup": {
-            "from": "personajes",
-            "localField": "campeon_id",
-            "foreignField": "_id",
-            "as": "campeon_data"
-        }},
-        {"$unwind": {"path": "$campeon_data", "preserveNullAndEmptyArrays": True}},
-        {"$project": {
-            "_id": 1,
-            "resultado": 1,
-            "duracion_min": 1,
-            "kills": 1,
-            "deaths": 1,
-            "assists": 1,
-            "carril": 1,
-            "notas": 1,
-            "fecha": 1,
-            "campeon_nombre": "$campeon_data.nombre",
-            "campeon_icon": "$campeon_data.icon",
-            "campeon_tier": "$campeon_data.tier",
-        }},
-        {"$sort": {"fecha": -1}}
-    ]
-    partidas = list(partidas_analizadas_collection.aggregate(pipeline_partidas))
-    for p in partidas:
-        p['id'] = str(p['_id'])
-        deaths = p.get('deaths', 1) or 1
-        p['kda'] = round((p.get('kills', 0) + p.get('assists', 0)) / deaths, 2)
+    # Obtener las partidas analizadas registradas por este usuario si está autorizado (es admin o es su propio perfil)
+    mostrar_partidas = request.user.is_staff or request.user.username.lower() == username.lower()
+    
+    partidas = []
+    if mostrar_partidas:
+        pipeline_partidas = [
+            {"$match": {"registrado_por": user_obj.username}},
+            {"$lookup": {
+                "from": "personajes",
+                "localField": "campeon_id",
+                "foreignField": "_id",
+                "as": "campeon_data"
+            }},
+            {"$unwind": {"path": "$campeon_data", "preserveNullAndEmptyArrays": True}},
+            {"$project": {
+                "_id": 1,
+                "resultado": 1,
+                "duracion_min": 1,
+                "kills": 1,
+                "deaths": 1,
+                "assists": 1,
+                "carril": 1,
+                "notas": 1,
+                "fecha": 1,
+                "campeon_nombre": "$campeon_data.nombre",
+                "campeon_icon": "$campeon_data.icon",
+                "campeon_tier": "$campeon_data.tier",
+            }},
+            {"$sort": {"fecha": -1}}
+        ]
+        partidas = list(partidas_analizadas_collection.aggregate(pipeline_partidas))
+        for p in partidas:
+            p['id'] = str(p['_id'])
+            deaths = p.get('deaths', 1) or 1
+            p['kda'] = round((p.get('kills', 0) + p.get('assists', 0)) / deaths, 2)
         
     # Obtener estadísticas agregadas del perfil
     total_partidas = len(partidas)
